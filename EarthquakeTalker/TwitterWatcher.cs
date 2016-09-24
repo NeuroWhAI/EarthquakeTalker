@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.Text.RegularExpressions;
 using LinqToTwitter;
 
 namespace EarthquakeTalker
@@ -102,12 +103,29 @@ $");
                     {
                         m_latestTweet = firstTweet;
 
+
+                        StringBuilder alarmText = new StringBuilder(firstTweet.Text);
+
+                        Regex rgx = new Regex(@"규모(\d{1,2}\.?\d*)");
+                        var match = rgx.Match(firstTweet.Text);
+                        if (match.Success)
+                        {
+                            double scale = 0.0;
+                            if (double.TryParse(match.Groups[1].ToString(), out scale))
+                            {
+                                alarmText.AppendLine();
+                                alarmText.AppendLine();
+
+                                alarmText.Append(EarthquakeKnowHow.GetKnowHow(scale));
+                            }
+                        }
+
                         return new Message()
                         {
                             Level = Message.Priority.Critical,
                             Sender = UserName + " 트위터",
                             Text = $@"[기상청 지진정보서비스]
-{firstTweet.Text}",
+{alarmText.ToString()}",
                         };
                     }
                     else

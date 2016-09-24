@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EarthquakeKnowHow.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="TwitterWatcher.cs" />
