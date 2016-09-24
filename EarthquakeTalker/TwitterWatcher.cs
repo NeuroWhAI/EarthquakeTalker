@@ -100,6 +100,8 @@ $");
                     }
                     else if (m_latestTweet.CreatedAt < firstTweet.CreatedAt)
                     {
+                        m_latestTweet = firstTweet;
+
                         return new Message()
                         {
                             Level = Message.Priority.Critical,
