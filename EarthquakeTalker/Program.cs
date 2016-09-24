@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Http;
-using LinqToTwitter;
 
 namespace EarthquakeTalker
 {
@@ -17,11 +15,12 @@ namespace EarthquakeTalker
                 try
                 {
                     Work();
+                    break;
                 }
                 catch (Exception)
                 {
                     Talker talker = new Talker();
-                    talker.PushMessage(new Message("[기상청 지진정보서비스]가 예기치 못한 오류로 종료되었습니다.",
+                    talker.PushMessage(new Message("지진봇이 예기치 못한 이유로 종료되었습니다.",
                         "지진봇",
                         Message.Priority.Critical));
                     talker.TalkAll();
@@ -42,6 +41,9 @@ namespace EarthquakeTalker
             List<Worker> workerList = new List<Worker>();
             workerList.Add(new TwitterWatcher("KMA_earthquake"));
             workerList.Add(new KmaHome());
+            workerList.Add(new Seismograph("slinktool.exe", "BH1", "IU_INCN", "인천"));
+            workerList.Add(new Seismograph("slinktool.exe", "BHE", "JP_JTU", "대마도"));
+            workerList.Add(new Seismograph("slinktool.exe", "BHE", "KG_TJN", "대전"));
 
 
             foreach (var worker in workerList)
@@ -49,12 +51,37 @@ namespace EarthquakeTalker
                 worker.Start(talker, logger);
             }
 
-            while (true)
+
+            bool onRunning = true;
+
+            var inputTask = Task.Factory.StartNew(new Action(() =>
+            {
+                while (true)
+                {
+                    var key = Console.ReadKey(true);
+
+                    if (key.KeyChar == 'q' || key.KeyChar == 'Q')
+                    {
+                        onRunning = false;
+                        break;
+                    }
+
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }));
+
+            while (onRunning)
             {
                 talker.TalkAll();
 
                 logger.LogAll();
+
+
+                System.Threading.Thread.Sleep(100);
             }
+
+            inputTask.Wait();
+
 
             foreach (var worker in workerList)
             {
