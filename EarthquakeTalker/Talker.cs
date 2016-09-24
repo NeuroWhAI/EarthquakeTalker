@@ -15,6 +15,9 @@ namespace EarthquakeTalker
 
         //################################################################################################
 
+        public string TalkerName
+        { get; set; } = string.Empty;
+
         protected IntPtr m_editBox = IntPtr.Zero;
         protected string m_roomName = string.Empty;
         public string RoomName
@@ -64,7 +67,14 @@ namespace EarthquakeTalker
 
                     foreach (var msg in m_msgQueue)
                     {
-                        WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msg.ToString());
+                        string msgText = msg.ToString();
+
+                        if (string.IsNullOrWhiteSpace(TalkerName) == false)
+                        {
+                            msgText = $"@ 키워드 : {TalkerName}\n\n" + msgText;
+                        }
+
+                        WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msgText);
                         bool result = WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
 
                         if (result)

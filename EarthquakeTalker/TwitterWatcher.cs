@@ -106,7 +106,7 @@ $");
 
                         StringBuilder alarmText = new StringBuilder(firstTweet.Text);
 
-                        Regex rgx = new Regex(@"규모(\d{1,2}\.?\d*)");
+                        Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
                         var match = rgx.Match(firstTweet.Text);
                         if (match.Success)
                         {
