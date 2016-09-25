@@ -63,8 +63,6 @@ namespace EarthquakeTalker
             {
                 lock (m_lockMsgQueue)
                 {
-                    int successCount = 0;
-
                     foreach (var msg in m_msgQueue)
                     {
                         string msgText = msg.ToString();
@@ -75,23 +73,11 @@ namespace EarthquakeTalker
                         }
 
                         WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msgText);
-                        bool result = WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
-
-                        if (result)
-                        {
-                            successCount++;
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
                     }
 
 
-                    for (int i = 0; i < successCount; ++i)
-                    {
-                        m_msgQueue.Dequeue();
-                    }
+                    m_msgQueue.Clear();
                 }
 
 

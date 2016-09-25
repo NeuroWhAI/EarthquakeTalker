@@ -111,7 +111,7 @@ namespace EarthquakeTalker
             }
             finally
             {
-                Thread.Sleep(20000);
+                Thread.Sleep(30000);
             }
 
 

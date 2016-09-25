@@ -40,9 +40,14 @@ namespace EarthquakeTalker
         protected List<int> m_samples = new List<int>();
         protected readonly object m_lockSamples = new object();
 
+        protected Queue<int> m_sampleCountList = new Queue<int>();
+        protected readonly object m_lockSampleCount = new object();
+
+        protected double? m_normalScale = null;
+
         //###########################################################################################################
 
-        protected override void BeforeStart(Talker talker)
+        protected void StartProcess()
         {
             m_proc = new Process();
             m_proc.StartInfo = new ProcessStartInfo()
@@ -63,7 +68,7 @@ namespace EarthquakeTalker
             m_proc.BeginOutputReadLine();
         }
 
-        protected override void AfterStop(Talker talker)
+        protected void StopProcess()
         {
             m_proc.Close();
             m_proc.WaitForExit(3000);
@@ -75,36 +80,132 @@ namespace EarthquakeTalker
             m_leftSample = 0;
 
             m_samples.Clear();
+
+            m_sampleCountList.Clear();
+
+            m_normalScale = null;
+        }
+
+        //###########################################################################################################
+
+        protected override void BeforeStart(Talker talker)
+        {
+            StartProcess();
+        }
+
+        protected override void AfterStop(Talker talker)
+        {
+            StopProcess();
         }
 
         protected override Message OnWork()
         {
             try
             {
-                lock (m_lockSamples)
+                int sampleCount = 0;
+
+                lock (m_lockSampleCount)
                 {
-                    double totalData = 0;
-
-                    if (m_samples.Count > 512)
+                    if (m_sampleCountList.Count > 0)
                     {
-                        foreach (var data in m_samples)
+                        sampleCount = m_sampleCountList.Peek();
+                    }
+                }
+
+
+                if (sampleCount > 0)
+                {
+                    bool runAvg = false;
+
+                    lock (m_lockSamples)
+                    {
+                        if (m_samples.Count >= sampleCount)
                         {
-                            totalData += Math.Abs(data);
+                            runAvg = true;
                         }
-
-                        m_logger.PushLog(Name + " Avg: " + totalData / m_samples.Count);
-
-                        m_samples.Clear();
                     }
 
 
-                    // TODO: 경보
+                    if (runAvg)
+                    {
+                        lock (m_lockSampleCount)
+                        {
+                            m_sampleCountList.Dequeue();
+                        }
+
+
+                        int maxData = 0;
+
+                        double sum = 0.0;
+                        int count = 0;
+
+                        lock (m_lockSamples)
+                        {
+                            for (int i = 0; i < sampleCount; ++i)
+                            {
+                                int data = Math.Abs(m_samples[i]);
+
+                                if (data == 0)
+                                    continue;
+
+                                if (data > maxData)
+                                    maxData = data;
+
+                                sum += 1.0 / data;
+                                ++count;
+                            }
+
+
+                            m_samples.RemoveRange(0, sampleCount);
+                        }
+
+
+                        if (count > 0)
+                        {
+                            double avgM = Math.Log10(1.0 / sum * count);
+
+                            if (m_normalScale == null)
+                            {
+                                m_normalScale = avgM;
+
+                                m_logger.PushLog(Name + " : " + m_normalScale);
+                            }
+                            else
+                            {
+                                m_normalScale += (avgM - m_normalScale) / 16.0;
+
+                                double gap = avgM - (double)m_normalScale;
+                                if (Math.Abs(gap) > 2.0 || maxData > 200000)
+                                {
+                                    double scale = Math.Log10(maxData) - 1.25;
+
+                                    var msg = new Message()
+                                    {
+                                        Level = Message.Priority.Critical,
+                                        Sender = Selector + " " + Stream + " Station",
+                                        Text = $@"{Name}에서 최대 {maxData}의 진폭 감지됨.
+지역 예상규모 : {scale}±2
+오보일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
+{EarthquakeKnowHow.GetKnowHow(scale)}",
+                                    };
+
+                                    m_logger.PushLog(msg);
+
+                                    return msg;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception exp)
             {
                 Console.WriteLine(exp.Message);
                 Console.WriteLine(exp.StackTrace);
+
+                StopProcess();
+                System.Threading.Thread.Sleep(3000);
+                StartProcess();
             }
             finally
             {
@@ -137,6 +238,11 @@ namespace EarthquakeTalker
                     Console.Write("~");
 
                     m_leftSample = int.Parse(m.Groups[2].ToString());
+
+                    lock (m_lockSampleCount)
+                    {
+                        m_sampleCountList.Enqueue(m_leftSample);
+                    }
 
                     m_buffer = new StringBuilder(buf.Substring(m.Index + m.Length));
                 }

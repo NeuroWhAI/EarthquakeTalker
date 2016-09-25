@@ -17,8 +17,12 @@ namespace EarthquakeTalker
                     Work();
                     break;
                 }
-                catch (Exception)
+                catch (Exception exp)
                 {
+                    Console.WriteLine(exp.Message);
+                    Console.WriteLine(exp.StackTrace);
+
+
                     Talker talker = new Talker();
                     talker.PushMessage(new Message("지진봇이 예기치 못한 이유로 종료되었습니다.",
                         "지진봇",
