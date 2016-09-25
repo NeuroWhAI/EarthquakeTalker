@@ -182,19 +182,22 @@ namespace EarthquakeTalker
                                 {
                                     double scale = Math.Log10(maxData) - 1.25;
 
-                                    var msg = new Message()
+                                    if (scale > 1.5)
                                     {
-                                        Level = Message.Priority.Critical,
-                                        Sender = Selector + " " + Stream + " Station",
-                                        Text = $@"{Name}에서 최대 {maxData}의 진폭 감지됨.
+                                        var msg = new Message()
+                                        {
+                                            Level = Message.Priority.Critical,
+                                            Sender = Selector + " " + Stream + " Station",
+                                            Text = $@"{Name}에서 최대 {maxData}의 진폭 감지됨.
 지역 예상규모 : {scale}±2
 오보일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 {EarthquakeKnowHow.GetKnowHow(scale)}",
-                                    };
+                                        };
 
-                                    m_logger.PushLog(msg);
+                                        m_logger.PushLog(msg);
 
-                                    return msg;
+                                        return msg;
+                                    }
                                 }
                             }
                         }

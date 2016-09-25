@@ -15,7 +15,7 @@ namespace EarthquakeTalker
 
 
             StringBuilder str = new StringBuilder("");
-            str.AppendLine($"[국내 규모{richterMScale.ToString()} 지진 발생시 행동요령]");
+            str.AppendLine($"[국내 규모{richterMScale.ToString("F1")} 지진 발생시 행동요령]");
 
 
             if (richterMScale < 3.0)

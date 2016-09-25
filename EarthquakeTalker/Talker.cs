@@ -69,11 +69,13 @@ namespace EarthquakeTalker
 
                         if (string.IsNullOrWhiteSpace(TalkerName) == false)
                         {
-                            msgText = $"@ 키워드 : {TalkerName}\n\n" + msgText;
+                            msgText = $"@@ {TalkerName} @@\n\n" + msgText;
                         }
 
                         WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msgText);
                         WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
+
+                        System.Threading.Thread.Sleep(200);
                     }
 
 
