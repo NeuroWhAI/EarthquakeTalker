@@ -25,7 +25,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(Talker talker)
         {
-            
+            this.JobDelay = TimeSpan.FromSeconds(30.0);
         }
 
         protected override void AfterStop(Talker talker)
@@ -108,10 +108,6 @@ namespace EarthquakeTalker
                 Thread.Sleep(10000);
 
                 m_client = new HttpClient();
-            }
-            finally
-            {
-                Thread.Sleep(30000);
             }
 
 

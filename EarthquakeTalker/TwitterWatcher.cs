@@ -67,6 +67,9 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(Talker talker)
         {
+            this.JobDelay = TimeSpan.FromSeconds(20.0);
+
+
             CreateContext();
         }
 
@@ -143,10 +146,6 @@ $");
                 Thread.Sleep(10000);
 
                 CreateContext();
-            }
-            finally
-            {
-                Thread.Sleep(20000);
             }
 
 

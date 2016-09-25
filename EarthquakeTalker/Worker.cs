@@ -21,6 +21,8 @@ namespace EarthquakeTalker
 
         protected Task m_task = null;
         protected bool m_onRunning = false;
+        public TimeSpan JobDelay
+        { get; set; } = TimeSpan.FromSeconds(0.1);
 
         //############################################################################################
 
@@ -67,7 +69,7 @@ namespace EarthquakeTalker
                 }
 
 
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(JobDelay);
             }
         }
 

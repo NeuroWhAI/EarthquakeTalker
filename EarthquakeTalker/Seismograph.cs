@@ -90,6 +90,9 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(Talker talker)
         {
+            this.JobDelay = TimeSpan.FromSeconds(1.0);
+
+
             StartProcess();
         }
 
@@ -206,10 +209,6 @@ namespace EarthquakeTalker
                 StopProcess();
                 System.Threading.Thread.Sleep(3000);
                 StartProcess();
-            }
-            finally
-            {
-                System.Threading.Thread.Sleep(1000);
             }
 
 
