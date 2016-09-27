@@ -45,9 +45,9 @@ namespace EarthquakeTalker
             List<Worker> workerList = new List<Worker>();
             workerList.Add(new TwitterWatcher("KMA_earthquake"));
             workerList.Add(new KmaHome());
-            workerList.Add(new Seismograph("slinktool.exe", "BH1", "IU_INCN", "인천"));
-            workerList.Add(new Seismograph("slinktool.exe", "BHE", "JP_JTU", "대마도"));
-            workerList.Add(new Seismograph("slinktool.exe", "BHE", "KG_TJN", "대전"));
+            workerList.Add(new Seismograph("slinktool.exe", "10BH1", "IU_INCN", 20000.0 * 526316 / 100, "인천"));
+            workerList.Add(new Seismograph("slinktool.exe", "BHE", "JP_JTU", 1500.0 * 419430 / 100, "대마도"));
+            workerList.Add(new Seismograph("slinktool.exe", "BHE", "KG_TJN", 1500.0 * 419430 / 100, "대전"));
 
 
             foreach (var worker in workerList)

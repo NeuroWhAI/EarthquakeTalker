@@ -10,11 +10,12 @@ namespace EarthquakeTalker
 {
     public class Seismograph : Worker
     {
-        public Seismograph(string slinktoolPath, string selector, string stream, string name = "")
+        public Seismograph(string slinktoolPath, string selector, string stream, double gain, string name = "")
         {
             SLinkToolPath = slinktoolPath;
             Selector = selector;
             Stream = stream;
+            Gain = gain;
             Name = name;
         }
 
@@ -29,6 +30,12 @@ namespace EarthquakeTalker
         public string Stream
         { get; protected set; } = string.Empty;
 
+        /// <summary>
+        /// 진폭을 이 값으로 나누면 cm단위의 지반 속도or가속도가 나온다.
+        /// </summary>
+        public double Gain
+        { get; set; }
+
         public string Name
         { get; set; }
 
@@ -42,8 +49,6 @@ namespace EarthquakeTalker
 
         protected Queue<int> m_sampleCountList = new Queue<int>();
         protected readonly object m_lockSampleCount = new object();
-
-        protected double? m_normalScale = null;
 
         //###########################################################################################################
 
@@ -82,8 +87,6 @@ namespace EarthquakeTalker
             m_samples.Clear();
 
             m_sampleCountList.Clear();
-
-            m_normalScale = null;
         }
 
         //###########################################################################################################
@@ -139,23 +142,14 @@ namespace EarthquakeTalker
 
                         int maxData = 0;
 
-                        double sum = 0.0;
-                        int count = 0;
-
                         lock (m_lockSamples)
                         {
                             for (int i = 0; i < sampleCount; ++i)
                             {
                                 int data = Math.Abs(m_samples[i]);
-
-                                if (data == 0)
-                                    continue;
-
+                                
                                 if (data > maxData)
                                     maxData = data;
-
-                                sum += 1.0 / data;
-                                ++count;
                             }
 
 
@@ -163,42 +157,32 @@ namespace EarthquakeTalker
                         }
 
 
-                        if (count > 0)
+                        if (maxData > 0)
                         {
-                            double avgM = Math.Log10(1.0 / sum * count);
+                            double pga = maxData / Gain;
 
-                            if (m_normalScale == null)
+                            if (pga > 0.001)
                             {
-                                m_normalScale = avgM;
-
-                                m_logger.PushLog(Name + " : " + m_normalScale);
+                                m_logger.PushLog(Name + " PGA : " + pga);
                             }
-                            else
+
+                            if (pga > 0.002)
                             {
-                                m_normalScale += (avgM - m_normalScale) / 16.0;
-
-                                double gap = avgM - (double)m_normalScale;
-                                if (Math.Abs(gap) > 2.0 || maxData > 200000)
+                                var msg = new Message()
                                 {
-                                    double scale = Math.Log10(maxData) - 1.25;
+                                    Level = Message.Priority.Critical,
+                                    Sender = Selector + " " + Stream + " Station",
+                                    Text = $@"{Name}에서 진동 감지됨.
+예상되는 PGA : {pga.ToString("F3")}±0.15
+진원지 : 알 수 없음.
+오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.",
+                                };
 
-                                    if (scale > 1.5)
-                                    {
-                                        var msg = new Message()
-                                        {
-                                            Level = Message.Priority.Critical,
-                                            Sender = Selector + " " + Stream + " Station",
-                                            Text = $@"{Name}에서 최대 {maxData}의 진폭 감지됨.
-지역 예상규모 : {scale}±2
-오보일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
-{EarthquakeKnowHow.GetKnowHow(scale)}",
-                                        };
 
-                                        m_logger.PushLog(msg);
+                                m_logger.PushLog(msg);
 
-                                        return msg;
-                                    }
-                                }
+
+                                return msg;
                             }
                         }
                     }
@@ -257,8 +241,6 @@ namespace EarthquakeTalker
                 var m = rgx.Match(buf);
                 while (m.Success)
                 {
-                    //Console.Write(m.Groups[1].ToString() + '\t');
-
                     lock (m_lockSamples)
                     {
                         m_samples.Add(int.Parse(m.Groups[1].ToString().Trim()));
