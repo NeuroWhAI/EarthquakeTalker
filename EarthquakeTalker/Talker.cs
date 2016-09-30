@@ -19,6 +19,7 @@ namespace EarthquakeTalker
         { get; set; } = string.Empty;
 
         protected IntPtr m_editBox = IntPtr.Zero;
+
         protected string m_roomName = string.Empty;
         public string RoomName
         {

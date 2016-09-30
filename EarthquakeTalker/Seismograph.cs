@@ -161,19 +161,22 @@ namespace EarthquakeTalker
                         {
                             double pga = maxData / Gain;
 
-                            if (pga > 0.001)
+                            if (pga > 0.0015)
                             {
                                 m_logger.PushLog(Name + " PGA : " + pga);
                             }
 
                             if (pga > 0.002)
                             {
+                                double mScale = 2.0 * Math.Log10(pga * 980.665) + 2.0;
+
                                 var msg = new Message()
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name}에서 진동 감지됨.
-예상되는 PGA : {pga.ToString("F3")}±0.15
+{Name}에서의 PGA : {pga.ToString("F3")}±0.15
+{Name}에서의 규모 : {mScale.ToString("F1")}±0.7
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.",
                                 };

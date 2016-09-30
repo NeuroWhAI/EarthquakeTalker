@@ -15,7 +15,7 @@ namespace EarthquakeTalker
 
         //############################################################################################
 
-        protected Talker m_talker = null;
+        private Talker m_talker = null;
 
         protected Logger m_logger = null;
 
