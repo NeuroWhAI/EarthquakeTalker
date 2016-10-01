@@ -65,7 +65,7 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        protected override void BeforeStart(Talker talker)
+        protected override void BeforeStart(MultipleTalker talker)
         {
             this.JobDelay = TimeSpan.FromSeconds(20.0);
 
@@ -73,7 +73,7 @@ namespace EarthquakeTalker
             CreateContext();
         }
 
-        protected override void AfterStop(Talker talker)
+        protected override void AfterStop(MultipleTalker talker)
         {
             m_latestTweet = null;
 

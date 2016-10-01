@@ -15,7 +15,7 @@ namespace EarthquakeTalker
 
         //############################################################################################
 
-        private Talker m_talker = null;
+        private MultipleTalker m_talker = null;
 
         protected Logger m_logger = null;
 
@@ -26,7 +26,7 @@ namespace EarthquakeTalker
 
         //############################################################################################
 
-        public void Start(Talker talker, Logger logger)
+        public void Start(MultipleTalker talker, Logger logger)
         {
             if (talker == null)
                 throw new ArgumentException("talker는 null이 아니어야 합니다.");
@@ -75,9 +75,9 @@ namespace EarthquakeTalker
 
         //############################################################################################
 
-        protected abstract void BeforeStart(Talker talker);
+        protected abstract void BeforeStart(MultipleTalker talker);
 
-        protected abstract void AfterStop(Talker talker);
+        protected abstract void AfterStop(MultipleTalker talker);
 
         protected abstract Message OnWork();
     }

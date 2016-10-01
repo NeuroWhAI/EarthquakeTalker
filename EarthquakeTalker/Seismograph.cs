@@ -91,7 +91,7 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        protected override void BeforeStart(Talker talker)
+        protected override void BeforeStart(MultipleTalker talker)
         {
             this.JobDelay = TimeSpan.FromSeconds(1.0);
 
@@ -99,7 +99,7 @@ namespace EarthquakeTalker
             StartProcess();
         }
 
-        protected override void AfterStop(Talker talker)
+        protected override void AfterStop(MultipleTalker talker)
         {
             StopProcess();
         }
@@ -178,7 +178,9 @@ namespace EarthquakeTalker
 {Name}에서의 PGA : {pga.ToString("F3")}±0.15
 {Name}에서의 규모 : {mScale.ToString("F1")}±0.7
 진원지 : 알 수 없음.
-오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.",
+오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
+
+{EarthquakeKnowHow.GetKnowHow(mScale)}",
                                 };
 
 
@@ -196,9 +198,12 @@ namespace EarthquakeTalker
                 Console.WriteLine(exp.Message);
                 Console.WriteLine(exp.StackTrace);
 
-                StopProcess();
-                System.Threading.Thread.Sleep(3000);
-                StartProcess();
+                if (m_onRunning)
+                {
+                    StopProcess();
+                    System.Threading.Thread.Sleep(3000);
+                    StartProcess();
+                }
             }
 
 

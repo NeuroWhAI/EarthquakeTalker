@@ -39,8 +39,9 @@ namespace EarthquakeTalker
         {
             Logger logger = new Logger();
 
-            Talker talker = new Talker("■전국 지진 정보 공유소■");
-            talker.TalkerName = "지진봇알림";
+            MultipleTalker talker = new MultipleTalker();
+            talker.AddTalker("지진봇알림", "■전국 지진 정보 공유소■");
+            talker.AddTalker("지진봇알림", "지진 친목방");
 
             List<Worker> workerList = new List<Worker>();
             workerList.Add(new TwitterWatcher("KMA_earthquake"));

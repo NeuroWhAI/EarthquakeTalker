@@ -23,12 +23,12 @@ namespace EarthquakeTalker
 
         //#############################################################################################
 
-        protected override void BeforeStart(Talker talker)
+        protected override void BeforeStart(MultipleTalker talker)
         {
             this.JobDelay = TimeSpan.FromSeconds(30.0);
         }
 
-        protected override void AfterStop(Talker talker)
+        protected override void AfterStop(MultipleTalker talker)
         {
             m_latestNoti = string.Empty;
 

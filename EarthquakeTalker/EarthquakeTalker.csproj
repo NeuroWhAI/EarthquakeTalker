@@ -70,6 +70,7 @@
     <Compile Include="EarthquakeKnowHow.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="MultipleTalker.cs" />
     <Compile Include="Seismograph.cs" />
     <Compile Include="TwitterWatcher.cs" />
     <Compile Include="Message.cs" />
