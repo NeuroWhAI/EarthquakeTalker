@@ -6,47 +6,17 @@ using System.Threading.Tasks;
 
 namespace EarthquakeTalker
 {
-    public class Talker
+    public abstract class Talker
     {
-        public Talker(string roomName = "")
+        public Talker()
         {
-            UpdateEditbox(roomName);
+            
         }
 
         //################################################################################################
-
-        public string TalkerName
-        { get; set; } = string.Empty;
-
-        protected IntPtr m_editBox = IntPtr.Zero;
-
-        protected string m_roomName = string.Empty;
-        public string RoomName
-        {
-            get { return m_roomName; }
-            set
-            {
-                UpdateEditbox(value);
-            }
-        }
-
-        protected Queue<Message> m_msgQueue = new Queue<Message>();
-        protected readonly object m_lockMsgQueue = new object();
-
-        //################################################################################################
-
-        protected void UpdateEditbox(string roomName)
-        {
-            m_roomName = roomName;
-
-
-            IntPtr room = WinApi.FindWindow(null, roomName);
-
-            if (room != IntPtr.Zero)
-            {
-                m_editBox = WinApi.FindWindowEx(room, IntPtr.Zero, "RichEdit20W", null);
-            }
-        }
+    
+        private Queue<Message> m_msgQueue = new Queue<Message>();
+        private readonly object m_lockMsgQueue = new object();
 
         //################################################################################################
 
@@ -58,41 +28,22 @@ namespace EarthquakeTalker
             }
         }
 
-        public bool TalkAll()
+        public void TalkAll()
         {
-            if (m_editBox != IntPtr.Zero)
+            lock (m_lockMsgQueue)
             {
-                lock (m_lockMsgQueue)
+                foreach (var msg in m_msgQueue)
                 {
-                    foreach (var msg in m_msgQueue)
-                    {
-                        string msgText = msg.ToString();
-
-                        if (string.IsNullOrWhiteSpace(TalkerName) == false)
-                        {
-                            msgText = $"@@ {TalkerName} @@\n\n" + msgText;
-                        }
-
-                        WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msgText);
-                        WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
-
-                        System.Threading.Thread.Sleep(200);
-                    }
-
-
-                    m_msgQueue.Clear();
+                    Talk(msg);
                 }
 
 
-                return true;
+                m_msgQueue.Clear();
             }
-            else
-            {
-                UpdateEditbox(m_roomName);
-            }
-
-
-            return false;
         }
+
+        //################################################################################################
+
+        protected abstract bool Talk(Message message);
     }
 }

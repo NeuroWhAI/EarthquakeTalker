@@ -19,28 +19,14 @@ namespace EarthquakeTalker
 
         //##############################################################################################################
 
-        public void AddTalker(string talkerName, string roomName)
+        public void AddTalker(Talker talker)
         {
-            m_talkerList.Add(new Talker(roomName)
-            {
-                TalkerName = talkerName,
-            });
+            m_talkerList.Add(talker);
         }
 
-        public void RemoveTalker(string talkerName)
+        public void RemoveTalker(Talker talker)
         {
-            m_talkerList.RemoveAll(delegate (Talker talker)
-            {
-                return (talker.TalkerName == talkerName);
-            });
-        }
-
-        public void RemoveTalkerIn(string roomName)
-        {
-            m_talkerList.RemoveAll(delegate (Talker talker)
-            {
-                return (talker.RoomName == roomName);
-            });
+            m_talkerList.Remove(talker);
         }
 
         public void Clear()

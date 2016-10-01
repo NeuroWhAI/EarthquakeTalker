@@ -21,13 +21,6 @@ namespace EarthquakeTalker
                 {
                     Console.WriteLine(exp.Message);
                     Console.WriteLine(exp.StackTrace);
-
-
-                    Talker talker = new Talker();
-                    talker.PushMessage(new Message("지진봇이 예기치 못한 이유로 종료되었습니다.",
-                        "지진봇",
-                        Message.Priority.Critical));
-                    talker.TalkAll();
                 }
 
 
@@ -40,8 +33,9 @@ namespace EarthquakeTalker
             Logger logger = new Logger();
 
             MultipleTalker talker = new MultipleTalker();
-            talker.AddTalker("지진봇알림", "■전국 지진 정보 공유소■");
-            talker.AddTalker("지진봇알림", "지진 친목방");
+            talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
+            talker.AddTalker(new KakaoTalker("■전국 지진 정보 공유소■", "지진봇알림"));
+            talker.AddTalker(new KakaoTalker("지진 친목방", "지진봇알림"));
 
             List<Worker> workerList = new List<Worker>();
             workerList.Add(new TwitterWatcher("KMA_earthquake"));

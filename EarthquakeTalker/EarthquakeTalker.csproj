@@ -68,10 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EarthquakeKnowHow.cs" />
+    <Compile Include="KakaoTalker.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MultipleTalker.cs" />
     <Compile Include="Seismograph.cs" />
+    <Compile Include="TelegramBot.cs" />
     <Compile Include="TwitterWatcher.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Program.cs" />
