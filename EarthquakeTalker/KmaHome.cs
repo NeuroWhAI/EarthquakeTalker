@@ -86,7 +86,7 @@ namespace EarthquakeTalker
 
                                 return new Message()
                                 {
-                                    Level = Message.Priority.High,
+                                    Level = Message.Priority.Normal,
                                     Sender = "기상청 특보",
                                     Text = noti,
                                 };

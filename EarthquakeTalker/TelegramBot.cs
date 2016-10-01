@@ -50,7 +50,9 @@ namespace EarthquakeTalker
             StringBuilder postData = new StringBuilder();
             postData.Append("{\"chat_id\": \"@");
             postData.Append(RoomID);
-            postData.Append("\", \"text\": \"");
+            postData.Append("\", \"disable_notification\": ");
+            postData.Append((message.Level < Message.Priority.High) ? "true" : "false");
+            postData.Append(", \"text\": \"");
 
             StringBuilder bodyData = new StringBuilder(message.ToString());
             bodyData.Replace("\\", "\\\\");
