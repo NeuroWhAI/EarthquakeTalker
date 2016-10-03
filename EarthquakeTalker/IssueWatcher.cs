@@ -52,6 +52,10 @@ namespace EarthquakeTalker
         {
             try
             {
+                // 원래 딜레이로 복귀
+                this.JobDelay = TimeSpan.FromSeconds(22.0);
+
+
                 var searchResponse =
                     (from search in m_twitterCtx.Search
                     where search.Type == SearchType.Search &&
@@ -111,7 +115,10 @@ namespace EarthquakeTalker
                                 else
                                     msg.AppendLine(text);
                             }
-                            
+
+
+                            // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.
+                            this.JobDelay = TimeSpan.FromMinutes(5.0);
 
                             return new Message()
                             {
