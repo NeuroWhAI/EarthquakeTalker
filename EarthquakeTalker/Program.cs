@@ -38,11 +38,12 @@ namespace EarthquakeTalker
             talker.AddTalker(new KakaoTalker("지진 친목방", "지진봇알림"));
 
             List<Worker> workerList = new List<Worker>();
-            workerList.Add(new TwitterWatcher("KMA_earthquake"));
+            workerList.Add(new UserWatcher("KMA_earthquake"));
             workerList.Add(new KmaHome());
             workerList.Add(new Seismograph("slinktool.exe", "00BH1", "IU_INCN", 3.352080e+09 / 100, "인천"));
             workerList.Add(new Seismograph("slinktool.exe", "BHE", "JP_JTU", 1.000000e+09 / 100, "대마도"));
             workerList.Add(new Seismograph("slinktool.exe", "BHE", "KG_TJN", 6.327240e+08 / 100, "대전"));
+            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전", TimeSpan.FromSeconds(30.0), 24));
 
 
             foreach (var worker in workerList)

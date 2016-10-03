@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using System.IO;
 using System.Text.RegularExpressions;
 using LinqToTwitter;
 
 namespace EarthquakeTalker
 {
-    public class TwitterWatcher : Worker
+    public class UserWatcher : TwitterWorker
     {
-        public TwitterWatcher(string userName = "NeuroWhAI")
+        public UserWatcher(string userName = "NeuroWhAI")
         {
             this.UserName = userName;
         }
@@ -24,45 +23,6 @@ namespace EarthquakeTalker
 
         protected Status m_latestTweet = null;
 
-        protected TwitterContext m_twitterCtx = null;
-
-        //###########################################################################################################
-
-        protected void CreateContext()
-        {
-            var credential = new SingleUserInMemoryCredentialStore();
-
-            try
-            {
-                using (StreamReader sr = new StreamReader(new FileStream("twitterKey.txt", FileMode.Open)))
-                {
-                    credential.ConsumerKey = sr.ReadLine();
-                    credential.ConsumerSecret = sr.ReadLine();
-                    credential.AccessToken = sr.ReadLine();
-                    credential.AccessTokenSecret = sr.ReadLine();
-
-
-                    sr.Close();
-                }
-            }
-            catch (FileNotFoundException)
-            {
-                m_logger.PushLog("트위터 키 파일을 찾을 수 없습니다.");
-            }
-            catch (EndOfStreamException)
-            {
-                m_logger.PushLog("트위터 키 파일을 읽을 수 없습니다.");
-            }
-
-            var auth = new SingleUserAuthorizer
-            {
-                CredentialStore = credential,
-            };
-            auth.AuthorizeAsync().Wait();
-
-            m_twitterCtx = new TwitterContext(auth);
-        }
-
         //###########################################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
@@ -70,7 +30,7 @@ namespace EarthquakeTalker
             this.JobDelay = TimeSpan.FromSeconds(20.0);
 
 
-            CreateContext();
+            AuthorizeContext();
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -90,7 +50,7 @@ namespace EarthquakeTalker
                     select tweet;
 
 
-                var firstTweet = statusTweets.First();
+                var firstTweet = statusTweets.FirstOrDefault();
 
                 if (firstTweet != null)
                 {
@@ -123,6 +83,7 @@ $");
                             }
                         }
 
+
                         return new Message()
                         {
                             Level = Message.Priority.Critical,
@@ -133,7 +94,7 @@ $");
                     }
                     else
                     {
-                        Console.Write(".");
+                        Console.Write('.');
                     }
                 }
             }
@@ -145,7 +106,7 @@ $");
 
                 Thread.Sleep(10000);
 
-                CreateContext();
+                AuthorizeContext();
             }
 
 

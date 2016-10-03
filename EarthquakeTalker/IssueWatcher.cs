@@ -1,0 +1,144 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
+using LinqToTwitter;
+
+namespace EarthquakeTalker
+{
+    public class IssueWatcher : TwitterWorker
+    {
+        public IssueWatcher(string keyword, string searchTerm, TimeSpan triggerTime,
+            int maxStatusCount = 20)
+        {
+            this.Keyword = keyword;
+            this.SearchTerm = searchTerm;
+            this.TriggerTime = triggerTime;
+            this.MaxStatusCount = maxStatusCount;
+        }
+
+        //#########################################################################################################
+
+        public string Keyword
+        { get; set; } = "";
+
+        public string SearchTerm
+        { get; set; } = "";
+
+        public TimeSpan TriggerTime
+        { get; set; }
+
+        public int MaxStatusCount
+        { get; set; } = 20;
+
+        //#########################################################################################################
+
+        protected override void BeforeStart(MultipleTalker talker)
+        {
+            this.JobDelay = TimeSpan.FromSeconds(22.0);
+
+
+            AuthorizeContext();
+        }
+
+        protected override void AfterStop(MultipleTalker talker)
+        {
+            m_twitterCtx = null;
+        }
+
+        protected override Message OnWork()
+        {
+            try
+            {
+                var searchResponse =
+                    (from search in m_twitterCtx.Search
+                    where search.Type == SearchType.Search &&
+                          search.Query == this.SearchTerm &&
+                          search.IncludeEntities == true &&
+                          search.ResultType == ResultType.Recent &&
+                          search.SearchLanguage == "ko" &&
+                          search.Count == this.MaxStatusCount * 3
+                    select search).FirstOrDefault();
+
+
+                if (searchResponse != null && searchResponse.Statuses != null)
+                {
+                    var statuses = searchResponse.Statuses;
+
+                    // 리트윗은 제외.
+                    statuses.RemoveAll(delegate (Status status)
+                    {
+                        return (status.Text.Contains("RT") || status.Text.Contains('@'));
+                    });
+
+
+                    if (statuses.Count >= this.MaxStatusCount)
+                    {
+                        var latestStatus = statuses.First();
+
+                        var timespan = latestStatus.CreatedAt - statuses[this.MaxStatusCount - 1].CreatedAt;
+                        timespan = timespan.Duration();
+
+                        if (timespan <= this.TriggerTime)
+                        {
+                            var latestTime = latestStatus.CreatedAt;
+
+                            StringBuilder msg = new StringBuilder();
+                            msg.AppendLine(latestTime.ToShortDateString() + " " + latestTime.ToShortTimeString());
+                            msg.Append("트위터 ");
+                            msg.Append(this.Keyword);
+                            msg.Append(" 관련 트윗 ");
+                            msg.Append(statuses.Count);
+                            msg.AppendLine("개가");
+                            msg.Append(timespan.Days + "일 ");
+                            msg.Append(timespan.Hours + "시간 ");
+                            msg.Append(timespan.Minutes + "분 ");
+                            msg.Append(timespan.Seconds + "초 ");
+                            msg.AppendLine("사이에 확인됨.");
+                            msg.AppendLine("오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.");
+
+                            msg.AppendLine();
+
+                            msg.AppendLine("[트윗 목록]");
+                            foreach (var status in statuses)
+                            {
+                                string text = status.Text.Replace('\n', ' ');
+
+                                if (text.Length > 36)
+                                    msg.AppendLine(text.Substring(0, 36) + "...");
+                                else
+                                    msg.AppendLine(text);
+                            }
+                            
+
+                            return new Message()
+                            {
+                                Level = Message.Priority.High,
+                                Sender = this.Keyword + " 관련 실시간 트윗",
+                                Text = msg.ToString(),
+                            };
+                        }
+                    }
+
+
+                    Console.Write('#');
+                }
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine(exp.Message);
+                Console.WriteLine(exp.StackTrace);
+
+
+                Thread.Sleep(10000);
+
+                AuthorizeContext();
+            }
+
+
+            return null;
+        }
+    }
+}

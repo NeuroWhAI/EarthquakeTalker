@@ -93,7 +93,7 @@ namespace EarthquakeTalker
                             }
                             else
                             {
-                                Console.Write(",");
+                                Console.Write(',');
                             }
                         }
                     }

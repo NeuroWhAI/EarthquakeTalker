@@ -229,7 +229,7 @@ namespace EarthquakeTalker
                     //Console.WriteLine("Hz: " + m.Groups[3]);
                     //Console.WriteLine("Time: " + m.Groups[4]);
 
-                    Console.Write("~");
+                    Console.Write('~');
 
                     m_leftSample = int.Parse(m.Groups[2].ToString());
 
