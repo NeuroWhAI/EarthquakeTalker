@@ -121,18 +121,18 @@ namespace EarthquakeTalker
 
                 if (sampleCount > 0)
                 {
-                    bool runAvg = false;
+                    bool runCheck = false;
 
                     lock (m_lockSamples)
                     {
                         if (m_samples.Count >= sampleCount)
                         {
-                            runAvg = true;
+                            runCheck = true;
                         }
                     }
 
 
-                    if (runAvg)
+                    if (runCheck)
                     {
                         lock (m_lockSampleCount)
                         {
@@ -166,16 +166,16 @@ namespace EarthquakeTalker
                                 m_logger.PushLog(Name + " PGA : " + pga);
                             }
 
-                            if (pga > 0.002)
+                            if (pga > 0.0028)
                             {
-                                double mScale = 2.0 * Math.Log10(pga * 980.665) + 2.0;
+                                double mScale = 2.0 * Math.Log10(pga * 980.665) + 1.6;
 
                                 var msg = new Message()
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name}에서 진동 감지됨.
-{Name}에서의 PGA : {pga.ToString("F3")}±0.15
+{Name}에서의 PGA : {pga.ToString("F4")}±0.15
 {Name}에서의 규모 : {mScale.ToString("F1")}±0.7
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
