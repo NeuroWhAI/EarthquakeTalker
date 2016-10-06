@@ -50,6 +50,11 @@ namespace EarthquakeTalker
         protected Queue<int> m_sampleCountList = new Queue<int>();
         protected readonly object m_lockSampleCount = new object();
 
+        public int Index
+        { get; set; } = -1;
+        public delegate void SeismographDataReceivedEventHandler(int index, List<int> waveform);
+        public event SeismographDataReceivedEventHandler WhenDataReceived = null;
+
         //###########################################################################################################
 
         protected void StartProcess()
@@ -144,6 +149,7 @@ namespace EarthquakeTalker
 
                         lock (m_lockSamples)
                         {
+                            // 파형에서 최댓값 찾기.
                             for (int i = 0; i < sampleCount; ++i)
                             {
                                 int data = Math.Abs(m_samples[i]);
@@ -153,6 +159,15 @@ namespace EarthquakeTalker
                             }
 
 
+                            // 비동기로 데이터 수신 이벤트 발생.
+                            var subSamples = Enumerable.Take(m_samples, sampleCount).ToList();
+                            Task.Factory.StartNew(delegate ()
+                            {
+                                WhenDataReceived(this.Index, subSamples);
+                            });
+
+
+                            // 처리한 파형 제거.
                             m_samples.RemoveRange(0, sampleCount);
                         }
 
@@ -166,7 +181,7 @@ namespace EarthquakeTalker
                                 m_logger.PushLog(Name + " PGA : " + pga);
                             }
 
-                            if (pga > 0.0028)
+                            if (pga > 0.0025)
                             {
                                 double mScale = 2.0 * Math.Log10(pga * 980.665) + 1.6;
 
