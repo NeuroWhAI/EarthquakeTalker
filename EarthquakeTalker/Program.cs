@@ -65,7 +65,7 @@ namespace EarthquakeTalker
             workerList.Add(new UserWatcher("KMA_earthquake"));
             workerList.Add(new KmaHome());
             workerList.AddRange(seismographList);
-            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전", TimeSpan.FromSeconds(30.0), 24));
+            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http", TimeSpan.FromSeconds(30.0), 24));
 
 
             int sensorIndex = 0;

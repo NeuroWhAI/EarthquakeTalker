@@ -77,6 +77,15 @@ namespace EarthquakeTalker
                         return (status.Text.Contains("RT") || status.Text.Contains('@'));
                     });
 
+                    // 작성자 중복 제거
+                    Dictionary<ulong, Status> uniqueStatuses = new Dictionary<ulong, Status>();
+                    foreach (var stat in statuses)
+                    {
+                        if (uniqueStatuses.ContainsKey(stat.UserID) == false)
+                            uniqueStatuses.Add(stat.UserID, stat);
+                    }
+                    statuses = uniqueStatuses.Values.ToList();
+
 
                     if (statuses.Count >= this.MaxStatusCount)
                     {
