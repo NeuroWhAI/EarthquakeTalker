@@ -106,6 +106,11 @@ namespace EarthquakeTalkerController
         {
             m_graphList[index].Visible = !m_graphList[index].Visible;
 
+            if (m_graphList[index].Visible == false)
+            {
+                m_graphList[index].ResetTempMax();
+            }
+
             this.Invalidate(true);
         }
 

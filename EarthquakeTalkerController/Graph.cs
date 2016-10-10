@@ -32,10 +32,12 @@ namespace EarthquakeTalkerController
         { get; set; } = 10000.0;
 
         public int MaxLength
-        { get; set; } = 2048;
+        { get; set; } = 3072;
 
         public double DangerPga
         { get; set; } = 0.0028;
+
+        protected int m_tempMax = 0;
 
         //##############################################################################################
 
@@ -54,6 +56,11 @@ namespace EarthquakeTalkerController
             m_waveform.Clear();
         }
 
+        public void ResetTempMax()
+        {
+            m_tempMax = 0;
+        }
+
         //##############################################################################################
 
         public void Draw(Graphics g, Size size)
@@ -66,6 +73,8 @@ namespace EarthquakeTalkerController
                 2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
             g.DrawString("Scale: " + HeightScale, SystemFonts.DefaultFont, Brushes.Black, 258, 2);
+            g.DrawString("Max PGA: " + (m_tempMax / Gain) + "g",
+                SystemFonts.DefaultFont, Brushes.Black, 258, 4 + SystemFonts.DefaultFont.Height);
 
             int maxData = 0;
 
@@ -102,6 +111,12 @@ namespace EarthquakeTalkerController
                         ++i;
                     }
                 }
+            }
+
+
+            if (maxData > m_tempMax)
+            {
+                m_tempMax = maxData;
             }
 
 

@@ -66,6 +66,8 @@ $");
                     {
                         m_latestTweet = firstTweet;
 
+                        m_logger.PushLog(firstTweet.Text);
+
 
                         StringBuilder alarmText = new StringBuilder(firstTweet.Text);
 

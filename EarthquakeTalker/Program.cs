@@ -11,7 +11,7 @@ namespace EarthquakeTalker
     {
         static void Main(string[] args)
         {
-            for (int i = 0; i < 3; ++i)
+            while (true)
             {
                 try
                 {
@@ -23,6 +23,9 @@ namespace EarthquakeTalker
                     Console.WriteLine(exp.Message);
                     Console.WriteLine(exp.StackTrace);
                 }
+
+
+                GC.Collect();
 
 
                 System.Threading.Thread.Sleep(8000);
