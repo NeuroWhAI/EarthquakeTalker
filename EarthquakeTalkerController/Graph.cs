@@ -49,6 +49,12 @@ namespace EarthquakeTalkerController
                 if (m_waveform.Count > MaxLength)
                     m_waveform.Dequeue();
             }
+
+
+            if (data > m_tempMax)
+            {
+                m_tempMax = data;
+            }
         }
 
         public void Clear()
@@ -111,12 +117,6 @@ namespace EarthquakeTalkerController
                         ++i;
                     }
                 }
-            }
-
-
-            if (maxData > m_tempMax)
-            {
-                m_tempMax = maxData;
             }
 
 

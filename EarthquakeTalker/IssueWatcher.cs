@@ -11,12 +11,13 @@ namespace EarthquakeTalker
     public class IssueWatcher : TwitterWorker
     {
         public IssueWatcher(string keyword, string searchTerm, TimeSpan triggerTime,
-            int maxStatusCount = 20)
+            int maxStatusCount = 20, int maxTextLength = 32)
         {
             this.Keyword = keyword;
             this.SearchTerm = searchTerm;
             this.TriggerTime = triggerTime;
             this.MaxStatusCount = maxStatusCount;
+            this.MaxTextLength = maxTextLength;
         }
 
         //#########################################################################################################
@@ -32,6 +33,9 @@ namespace EarthquakeTalker
 
         public int MaxStatusCount
         { get; set; } = 20;
+
+        public int MaxTextLength
+        { get; set; } = 32;
 
         //#########################################################################################################
 
@@ -71,20 +75,11 @@ namespace EarthquakeTalker
                 {
                     var statuses = searchResponse.Statuses;
 
-                    // 리트윗은 제외.
+                    // 특정 길이 이상이거나 리트윗 등 방해되는 트윗은 제외.
                     statuses.RemoveAll(delegate (Status status)
                     {
-                        return (status.Text.Contains("RT") || status.Text.Contains('@'));
+                        return (status.Text.Length > MaxTextLength || status.Text.Contains("RT"));
                     });
-
-                    // 작성자 중복 제거
-                    Dictionary<ulong, Status> uniqueStatuses = new Dictionary<ulong, Status>();
-                    foreach (var stat in statuses)
-                    {
-                        if (uniqueStatuses.ContainsKey(stat.UserID) == false)
-                            uniqueStatuses.Add(stat.UserID, stat);
-                    }
-                    statuses = uniqueStatuses.Values.ToList();
 
 
                     if (statuses.Count >= this.MaxStatusCount)
@@ -119,15 +114,15 @@ namespace EarthquakeTalker
                             {
                                 string text = status.Text.Replace('\n', ' ');
 
-                                if (text.Length > 36)
-                                    msg.AppendLine(text.Substring(0, 36) + "...");
+                                if (text.Length > 24)
+                                    msg.AppendLine(text.Substring(0, 24) + "...");
                                 else
                                     msg.AppendLine(text);
                             }
 
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.
-                            this.JobDelay = TimeSpan.FromMinutes(5.0);
+                            this.JobDelay = TimeSpan.FromMinutes(10.0);
 
                             return new Message()
                             {

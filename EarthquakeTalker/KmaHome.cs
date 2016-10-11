@@ -65,6 +65,9 @@ namespace EarthquakeTalker
                         msgBdr.Replace("&gt;", ">");
                         msgBdr.Replace("&amp;", "&");
                         msgBdr.Replace("&quot;", "\"");
+                        msgBdr.Replace("<td width=50%>", "");
+                        msgBdr.Replace("<img src=", "");
+                        msgBdr.Replace("border=0>", "");
 
                         string noti = msgBdr.ToString().Trim();
 

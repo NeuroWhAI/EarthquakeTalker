@@ -36,6 +36,9 @@ namespace EarthquakeTalker
         public double Gain
         { get; set; }
 
+        public double DangerPga
+        { get; set; } = 0.0024;
+
         public string Name
         { get; set; }
 
@@ -181,7 +184,7 @@ namespace EarthquakeTalker
                                 m_logger.PushLog(Name + " PGA : " + pga);
                             }
 
-                            if (pga > 0.0025)
+                            if (pga > DangerPga)
                             {
                                 double mScale = 2.0 * Math.Log10(pga * 980.665) + 1.6;
 
