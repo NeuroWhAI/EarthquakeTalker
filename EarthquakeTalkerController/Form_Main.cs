@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -20,6 +21,11 @@ namespace EarthquakeTalkerController
             m_graphList.Add(new Graph());
             m_graphList.Add(new Graph());
             m_graphList.Add(new Graph());
+
+            foreach (var graph in m_graphList)
+            {
+                graph.SavePath = Path.Combine(Application.StartupPath, "Seismograph");
+            }
         }
 
         //##############################################################################################

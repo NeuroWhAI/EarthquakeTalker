@@ -91,28 +91,26 @@ namespace EarthquakeTalker
 
                         if (timespan <= this.TriggerTime)
                         {
-                            var latestTime = latestStatus.CreatedAt;
+                            /// UTC 시간을 한국 시간(UTC+09)으로 계산한 시간.
+                            var latestTimeInKor = latestStatus.CreatedAt + TimeSpan.FromHours(9.0);
 
                             StringBuilder msg = new StringBuilder();
-                            msg.AppendLine(latestTime.ToShortDateString() + " " + latestTime.ToShortTimeString());
+                            msg.AppendLine(latestTimeInKor.ToShortDateString() + " " + latestTimeInKor.ToShortTimeString());
                             msg.Append("트위터 ");
                             msg.Append(this.Keyword);
                             msg.Append(" 관련 트윗 ");
-                            msg.Append(statuses.Count);
+                            msg.Append(this.MaxStatusCount);
                             msg.AppendLine("개가");
-                            msg.Append(timespan.Days + "일 ");
-                            msg.Append(timespan.Hours + "시간 ");
-                            msg.Append(timespan.Minutes + "분 ");
-                            msg.Append(timespan.Seconds + "초 ");
+                            msg.Append(timespan.TotalSeconds.ToString("F1") + "초 ");
                             msg.AppendLine("사이에 확인됨.");
                             msg.AppendLine("오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.");
 
                             msg.AppendLine();
 
-                            msg.AppendLine("[트윗 목록]");
-                            foreach (var status in statuses)
+                            msg.AppendLine("[트윗 내용]");
+                            for (int i = 0; i < this.MaxStatusCount; ++i)
                             {
-                                string text = status.Text.Replace('\n', ' ');
+                                string text = statuses[i].Text.Replace('\n', ' ');
 
                                 if (text.Length > 24)
                                     msg.AppendLine(text.Substring(0, 24) + "...");

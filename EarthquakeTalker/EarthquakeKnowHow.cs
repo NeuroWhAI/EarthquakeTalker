@@ -29,7 +29,7 @@ namespace EarthquakeTalker
             {
                 // 좁은 범위에서 많은 사람이 느끼고 사물이 움직일 수 있음.
 
-                str.AppendLine("조금 넓은 범위에서 많은 사람들이 진동을 감지할 수 있습니다.");
+                str.AppendLine("넓은 범위에서 많은 사람들이 진동을 감지할 수 있습니다.");
                 str.AppendLine("떨어지기 쉬운 물건을 정비하시고 어려울경우 떨어져 계셔야 합니다.");
                 str.AppendLine("크게 우려되는 피해는 없으며 소식에 귀를 기울여주시기 바랍니다.");
             }
@@ -37,7 +37,7 @@ namespace EarthquakeTalker
             {
                 // 넓은 범위에서 많은 사람이 느끼고 낮은 확률로 피해가 발생할 수 있음.
 
-                str.AppendLine("넓은 범위에서 많은 사람들이 진동을 감지할 수 있으며");
+                str.AppendLine("넓은 범위에서 대부분의 사람들이 진동을 감지할 수 있으며");
                 str.AppendLine("비교적 좁은 범위에서 강한 진동이 감지됩니다.");
                 str.AppendLine("물건이 떨어질 수 있으므로 조심하시고");
                 str.AppendLine("소식에 귀를 기울여주시기 바랍니다.");

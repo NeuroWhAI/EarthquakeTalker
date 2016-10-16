@@ -68,6 +68,7 @@ namespace EarthquakeTalker
                         msgBdr.Replace("<td width=50%>", "");
                         msgBdr.Replace("<img src=", "");
                         msgBdr.Replace("border=0>", "");
+                        msgBdr.Replace("<span class=ehead>", "");
 
                         string noti = msgBdr.ToString().Trim();
 

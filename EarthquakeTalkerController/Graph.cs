@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.IO;
 
 namespace EarthquakeTalkerController
 {
@@ -39,6 +40,11 @@ namespace EarthquakeTalkerController
 
         protected int m_tempMax = 0;
 
+        protected int m_captureGage = 0;
+
+        public string SavePath
+        { get; set; } = string.Empty;
+
         //##############################################################################################
 
         public void PushData(int data)
@@ -47,7 +53,18 @@ namespace EarthquakeTalkerController
             {
                 m_waveform.Enqueue(data);
                 if (m_waveform.Count > MaxLength)
+                {
                     m_waveform.Dequeue();
+
+                    if (m_captureGage > 0)
+                        --m_captureGage;
+                }
+            }
+
+
+            if (data / Gain > DangerPga / 2)
+            {
+                m_captureGage = this.MaxLength;
             }
 
 
@@ -71,8 +88,20 @@ namespace EarthquakeTalkerController
 
         public void Draw(Graphics g, Size size)
         {
+            Bitmap bitmap = null;
+
             if (Visible == false)
-                return;
+            {
+                if (m_captureGage > 0)
+                {
+                    bitmap = new Bitmap(size.Width, size.Height);
+                    g = Graphics.FromImage(bitmap);
+                }
+                else
+                {
+                    return;
+                }
+            }
 
 
             g.DrawString(Name, SystemFonts.DefaultFont, Brushes.Black,
@@ -124,6 +153,19 @@ namespace EarthquakeTalkerController
                 SystemFonts.DefaultFont, Brushes.Black, 516, 2);
             g.DrawString("PGA: " + (maxData / Gain) + "g",
                 SystemFonts.DefaultFont, Brushes.Black, 516, 4 + SystemFonts.DefaultFont.Height);
+
+
+            if (bitmap != null)
+            {
+                g.Dispose();
+                g = null;
+
+                Directory.CreateDirectory(Path.Combine(SavePath, Name));
+                bitmap.Save(Path.Combine(SavePath, Name, DateTime.Now.ToString("yyyy_MM_dd HH_mm_ss") + ".bmp"));
+
+                bitmap.Dispose();
+                bitmap = null;
+            }
         }
     }
 }
