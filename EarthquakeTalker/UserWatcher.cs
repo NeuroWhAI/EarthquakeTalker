@@ -86,9 +86,18 @@ $");
                         }
 
 
+                        var msgLevel = Message.Priority.Critical;
+                        if (firstTweet.Text.Contains("일본")
+                            || firstTweet.Text.Contains("중국")
+                            || firstTweet.Text.Contains("대만"))
+                        {
+                            msgLevel = Message.Priority.Normal;
+                        }
+
+
                         return new Message()
                         {
-                            Level = Message.Priority.Critical,
+                            Level = msgLevel,
                             Sender = UserName + " 트위터",
                             Text = $@"[기상청 지진정보서비스]
 {alarmText.ToString()}",

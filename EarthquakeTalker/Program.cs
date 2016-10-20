@@ -58,7 +58,7 @@ namespace EarthquakeTalker
             // 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
             talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
-            talker.AddTalker(new KakaoTalker("■전국 지진 정보 공유소■", "지진봇알림"));
+            talker.AddTalker(new KakaoTalker("한국 지진정보 커뮤니티", "지진봇알림"));
             talker.AddTalker(new KakaoTalker("지진 친목방", "지진봇알림"));
 
             // 지진계

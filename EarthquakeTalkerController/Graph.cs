@@ -62,7 +62,7 @@ namespace EarthquakeTalkerController
             }
 
 
-            if (data / Gain > DangerPga / 2)
+            if (data / Gain > DangerPga * 0.36)
             {
                 m_captureGage = this.MaxLength;
             }
