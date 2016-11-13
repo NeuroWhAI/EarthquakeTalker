@@ -31,13 +31,13 @@ namespace EarthquakeTalker
         { get; protected set; } = string.Empty;
 
         /// <summary>
-        /// 진폭을 이 값으로 나누면 cm단위의 지반 속도or가속도가 나온다.
+        /// 진폭을 이 값으로 나누면 지반 속도or가속도가 나온다.
         /// </summary>
         public double Gain
         { get; set; }
 
         public double DangerPga
-        { get; set; } = 0.0024;
+        { get; set; } = 0.0028;
 
         public string Name
         { get; set; }
@@ -186,15 +186,14 @@ namespace EarthquakeTalker
 
                             if (pga > DangerPga)
                             {
-                                double mScale = 2.0 * Math.Log10(pga * 980.665) + 1.6;
+                                double mScale = 2.0 * Math.Log10(pga * 980.665);
 
                                 var msg = new Message()
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name}에서 진동 감지됨.
-{Name}에서의 PGA : {pga.ToString("F4")}±0.15
-{Name}에서의 규모 : {mScale.ToString("F1")}±0.7
+수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 

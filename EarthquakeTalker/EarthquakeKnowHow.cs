@@ -22,7 +22,7 @@ namespace EarthquakeTalker
             {
                 // 민감한 사람은 느낄 수 있음.
 
-                str.AppendLine("좁은 범위에서 민감한 사람이 진동을 감지할 수 있습니다.");
+                str.AppendLine("비교적 좁은 범위에서 민감한 사람이 진동을 감지할 수 있습니다.");
                 str.AppendLine("우려되는 피해는 없으며 침착하시고 소식에 귀를 기울여주시기 바랍니다.");
             }
             else if (richterMScale < 4.0)
@@ -51,6 +51,7 @@ namespace EarthquakeTalker
                 str.AppendLine("전기/가스를 끄고 문을 열어두어 몸을 보호할 수 있는 곳에 숨어있다가");
                 str.AppendLine("진동이 잦아들면 머리를 보호하며 바깥의 넓은 곳으로 대피하시기 바랍니다.");
                 str.AppendLine("크게 규모 3~4의 여진이 뒤따를 수 있으니 주의하시기 바랍니다.");
+                str.AppendLine("더 큰 지진의 전진일 수 있으므로 안전한 곳으로 대피하시기를 권장합니다.");
             }
             else if (richterMScale < 7.0)
             {
@@ -64,14 +65,14 @@ namespace EarthquakeTalker
             }
             else
             {
-                // 자신이 운이 좋기를 바래라.
+                // 매우 큰 지진.
 
                 str.AppendLine("매우 넓은 범위에서 강한 진동과 함께 괴멸적인 피해가 발생할 수 있습니다.");
                 str.AppendLine("전기/가스를 끄고 문을 열어두어 몸을 보호할 수 있는 곳에 숨어있다가");
                 str.AppendLine("진동이 잦아들면 머리를 보호하며 바깥의 넓은 곳으로 대피하시기 바랍니다.");
                 str.AppendLine("산사태가 발생할 수 있으니 주의하시길 바랍니다.");
                 str.AppendLine("큰 여진이 뒤따를 수 있으니 주의하시기 바랍니다.");
-                str.AppendLine("당신에게 행운이 따르기를.");
+                str.AppendLine("해안 지진의 경우 해일이 발생할 수 있으므로 높은 곳으로 이동하시기 바랍니다.");
             }
 
 

@@ -71,27 +71,34 @@ $");
 
                         StringBuilder alarmText = new StringBuilder(firstTweet.Text);
 
-                        Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
-                        var match = rgx.Match(firstTweet.Text);
-                        if (match.Success)
+
+                        var msgLevel = Message.Priority.Normal;
+
+                        var koreaKeywords = new string[]
                         {
-                            double scale = 0.0;
-                            if (double.TryParse(match.Groups[1].ToString(), out scale))
+                            "경북", "경남", "경기", "전남", "전북", "제주", "서울", "충남", "충북",
+                            "북도", "남도", "광역시", "특별",
+                            "부산", "대구", "인천", "광주", "대전", "울산", "세종", "강원",
+                        };
+
+                        if (koreaKeywords.Any((text) => firstTweet.Text.Contains(text)))
+                        {
+                            msgLevel = Message.Priority.Critical;
+
+
+                            Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
+                            var match = rgx.Match(firstTweet.Text);
+                            if (match.Success)
                             {
-                                alarmText.AppendLine();
-                                alarmText.AppendLine();
+                                double scale = 0.0;
+                                if (double.TryParse(match.Groups[1].ToString(), out scale))
+                                {
+                                    alarmText.AppendLine();
+                                    alarmText.AppendLine();
 
-                                alarmText.Append(EarthquakeKnowHow.GetKnowHow(scale));
+                                    alarmText.Append(EarthquakeKnowHow.GetKnowHow(scale));
+                                }
                             }
-                        }
-
-
-                        var msgLevel = Message.Priority.Critical;
-                        if (firstTweet.Text.Contains("일본")
-                            || firstTweet.Text.Contains("중국")
-                            || firstTweet.Text.Contains("대만"))
-                        {
-                            msgLevel = Message.Priority.Normal;
                         }
 
 
