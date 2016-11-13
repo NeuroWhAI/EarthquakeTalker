@@ -54,6 +54,8 @@ namespace EarthquakeTalker
         protected readonly object m_lockSampleCount = new object();
 
         protected int m_prevRawData = 0;
+        protected double m_prevProcData = 0;
+        protected double m_samplingTime = 1.0;
 
         public int Index
         { get; set; } = -1;
@@ -250,6 +252,12 @@ namespace EarthquakeTalker
 
                     Console.Write('~');
 
+
+                    m_samplingTime = int.Parse(m.Groups[3].ToString());
+                    if (m_samplingTime > 0)
+                        m_samplingTime = 1.0 / m_samplingTime * 1000.0;
+
+
                     m_leftSample = int.Parse(m.Groups[2].ToString());
 
                     lock (m_lockSampleCount)
@@ -273,17 +281,12 @@ namespace EarthquakeTalker
                         int data = 0;
                         if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
                         {
-                            if (m_samples.Count > 0)
-                            {
-                                const double tau = Math.PI * Math.PI;
-                                double processedData = tau / (tau + 1) * m_samples.Last() + tau / (tau + 1) * (data - m_prevRawData);
+                            const double tau = Math.PI * 2.0;
+                            double processedData = tau / (tau + m_samplingTime) * m_prevProcData + tau / (tau + m_samplingTime) * (data - m_prevRawData);
 
-                                m_samples.Add(processedData);
-                            }
-                            else
-                            {
-                                m_samples.Add(data);
-                            }
+                            m_samples.Add(data);
+
+                            m_prevProcData = processedData;
                         }
                         else
                         {
