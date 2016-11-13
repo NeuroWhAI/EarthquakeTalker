@@ -38,9 +38,10 @@
             // panel_graph1
             // 
             this.panel_graph1.BackColor = System.Drawing.SystemColors.Control;
-            this.panel_graph1.Location = new System.Drawing.Point(12, 12);
+            this.panel_graph1.Location = new System.Drawing.Point(10, 10);
+            this.panel_graph1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.panel_graph1.Name = "panel_graph1";
-            this.panel_graph1.Size = new System.Drawing.Size(857, 186);
+            this.panel_graph1.Size = new System.Drawing.Size(750, 149);
             this.panel_graph1.TabIndex = 0;
             this.panel_graph1.Click += new System.EventHandler(this.panel_graph1_Click);
             this.panel_graph1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_graph1_Paint);
@@ -48,9 +49,10 @@
             // panel_graph2
             // 
             this.panel_graph2.BackColor = System.Drawing.SystemColors.Control;
-            this.panel_graph2.Location = new System.Drawing.Point(12, 204);
+            this.panel_graph2.Location = new System.Drawing.Point(10, 163);
+            this.panel_graph2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.panel_graph2.Name = "panel_graph2";
-            this.panel_graph2.Size = new System.Drawing.Size(857, 186);
+            this.panel_graph2.Size = new System.Drawing.Size(750, 149);
             this.panel_graph2.TabIndex = 1;
             this.panel_graph2.Click += new System.EventHandler(this.panel_graph2_Click);
             this.panel_graph2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_graph2_Paint);
@@ -58,28 +60,31 @@
             // panel_graph3
             // 
             this.panel_graph3.BackColor = System.Drawing.SystemColors.Control;
-            this.panel_graph3.Location = new System.Drawing.Point(12, 396);
+            this.panel_graph3.Location = new System.Drawing.Point(10, 317);
+            this.panel_graph3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.panel_graph3.Name = "panel_graph3";
-            this.panel_graph3.Size = new System.Drawing.Size(857, 186);
+            this.panel_graph3.Size = new System.Drawing.Size(750, 149);
             this.panel_graph3.TabIndex = 1;
             this.panel_graph3.Click += new System.EventHandler(this.panel_graph3_Click);
             this.panel_graph3.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_graph3_Paint);
             // 
             // timer_update
             // 
-            this.timer_update.Interval = 1500;
+            this.timer_update.Enabled = true;
+            this.timer_update.Interval = 2000;
             this.timer_update.Tick += new System.EventHandler(this.timer_update_Tick);
             // 
             // Form_Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.AppWorkspace;
-            this.ClientSize = new System.Drawing.Size(881, 594);
+            this.ClientSize = new System.Drawing.Size(771, 475);
             this.Controls.Add(this.panel_graph3);
             this.Controls.Add(this.panel_graph2);
             this.Controls.Add(this.panel_graph1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.MaximizeBox = false;
             this.Name = "Form_Main";
             this.Text = "Controller";

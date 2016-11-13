@@ -85,7 +85,7 @@ namespace EarthquakeTalker
                 {
                     lock (lockControllerInput)
                     {
-                        foreach (var data in waveform)
+                        foreach (int data in waveform)
                         {
                             if (controller.HasExited == false)
                                 controller.StandardInput.WriteLine(index + " " + data);

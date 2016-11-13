@@ -47,15 +47,17 @@ namespace EarthquakeTalker
         protected StringBuilder m_buffer = new StringBuilder();
         protected int m_leftSample = 0;
 
-        protected List<int> m_samples = new List<int>();
+        protected List<double> m_samples = new List<double>();
         protected readonly object m_lockSamples = new object();
 
         protected Queue<int> m_sampleCountList = new Queue<int>();
         protected readonly object m_lockSampleCount = new object();
 
+        protected int m_prevRawData = 0;
+
         public int Index
         { get; set; } = -1;
-        public delegate void SeismographDataReceivedEventHandler(int index, List<int> waveform);
+        public delegate void SeismographDataReceivedEventHandler(int index, List<double> waveform);
         public event SeismographDataReceivedEventHandler WhenDataReceived = null;
 
         //###########################################################################################################
@@ -155,7 +157,7 @@ namespace EarthquakeTalker
                             // 파형에서 최댓값 찾기.
                             for (int i = 0; i < sampleCount; ++i)
                             {
-                                int data = Math.Abs(m_samples[i]);
+                                int data = Math.Abs((int)m_samples[i]);
                                 
                                 if (data > maxData)
                                     maxData = data;
@@ -268,7 +270,34 @@ namespace EarthquakeTalker
                 {
                     lock (m_lockSamples)
                     {
-                        m_samples.Add(int.Parse(m.Groups[1].ToString().Trim()));
+                        int data = 0;
+                        if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
+                        {
+                            if (m_samples.Count > 0)
+                            {
+                                const double tau = Math.PI * Math.PI;
+                                double processedData = tau / (tau + 1) * m_samples.Last() + tau / (tau + 1) * (data - m_prevRawData);
+
+                                m_samples.Add(processedData);
+                            }
+                            else
+                            {
+                                m_samples.Add(data);
+                            }
+                        }
+                        else
+                        {
+                            if (m_samples.Count > 0)
+                            {
+                                m_samples.Add(m_samples.Last());
+                            }
+                            else
+                            {
+                                m_samples.Add(0);
+                            }
+                        }
+
+                        m_prevRawData = data;
                     }
 
 

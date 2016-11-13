@@ -34,6 +34,9 @@ namespace EarthquakeTalkerController
         protected List<Graph> m_graphList = new List<Graph>();
         protected bool m_onRun = false;
 
+        protected bool[] m_drawFlag = { false, false, false };
+        protected readonly object[] m_lockDrawFlag = { new object(), new object(), new object() };
+
         //##############################################################################################
 
         private void Form_Main_Load(object sender, EventArgs e)
@@ -60,11 +63,10 @@ namespace EarthquakeTalkerController
                         m_graphList[index].PushData(data);
 
 
-                        this.Invoke(new Action(() =>
+                        lock (m_lockDrawFlag[index])
                         {
-                            if (this.timer_update.Enabled == false)
-                                this.timer_update.Start();
-                        }));
+                            m_drawFlag[index] = true;
+                        }
                     }
                 }
                 catch (Exception)
@@ -101,10 +103,19 @@ namespace EarthquakeTalkerController
 
         private void timer_update_Tick(object sender, EventArgs e)
         {
-            this.Invalidate(true);
+            for (int i = 0; i < m_lockDrawFlag.Length; ++i)
+            {
+                if (m_drawFlag[i])
+                {
+                    this.Invalidate(true);
 
 
-            this.timer_update.Stop();
+                    lock (m_lockDrawFlag[i])
+                    {
+                        m_drawFlag[i] = false;
+                    }
+                }
+            }
         }
 
         //##############################################################################################
