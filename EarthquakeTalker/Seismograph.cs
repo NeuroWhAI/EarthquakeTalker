@@ -39,6 +39,9 @@ namespace EarthquakeTalker
         public double DangerPga
         { get; set; } = 0.0028;
 
+        public double DangerStaLta
+        { get; set; } = 9.5;
+
         public string Name
         { get; set; }
 
@@ -53,7 +56,9 @@ namespace EarthquakeTalker
         protected Queue<int> m_sampleCountList = new Queue<int>();
         protected readonly object m_lockSampleCount = new object();
 
+        protected double m_prevRawData = 0;
         protected double m_prevProcData = 0;
+        protected double? m_prevLongAvg = null;
 
         public int Index
         { get; set; } = -1;
@@ -97,6 +102,11 @@ namespace EarthquakeTalker
             m_samples.Clear();
 
             m_sampleCountList.Clear();
+
+            m_prevRawData = 0;
+            m_prevProcData = 0;
+
+            m_prevLongAvg = null;
         }
 
         //###########################################################################################################
@@ -150,18 +160,60 @@ namespace EarthquakeTalker
                         }
 
 
-                        int maxData = 0;
+                        /// Max Raw Data
+                        double maxData = 0;
+
+                        /// Max STA/LTA
+                        double maxStaLta = 0;
 
                         lock (m_lockSamples)
                         {
-                            // 파형에서 최댓값 찾기.
-                            for (int i = 0; i < sampleCount; ++i)
+                            /// LTA
+                            double longAvg = 0;
+
+                            // 최댓값을 찾음과 동시에 LTA 계산.
+                            foreach (double data in m_samples)
                             {
-                                int data = Math.Abs((int)m_samples[i]);
-                                
-                                if (data > maxData)
-                                    maxData = data;
+                                double absData = Math.Abs(data);
+                                if (absData > maxData)
+                                    maxData = absData;
+
+                                longAvg += (data / Gain) * (data / Gain);
                             }
+
+                            if (longAvg < 0.000001)
+                            {
+                                longAvg = 0.000001;
+                            }
+
+
+                            // Max STA/LTA 계산.
+                            if (m_prevLongAvg != null)
+                            {
+                                int shortTerm = sampleCount / 10;
+
+                                for (int partEnd = shortTerm; partEnd <= sampleCount; partEnd += shortTerm)
+                                {
+                                    /// STA
+                                    double shortAvg = 0;
+
+                                    for (int part = partEnd - shortTerm; part < partEnd; ++part)
+                                    {
+                                        shortAvg += (m_samples[part] / Gain) * (m_samples[part] / Gain);
+                                    }
+
+
+                                    /// STA/LTA
+                                    double staLta = shortAvg / m_prevLongAvg.Value;
+
+                                    if (staLta > maxStaLta)
+                                    {
+                                        maxStaLta = staLta;
+                                    }
+                                }
+                            }
+
+                            m_prevLongAvg = longAvg;
 
 
                             // 비동기로 데이터 수신 이벤트 발생.
@@ -175,18 +227,18 @@ namespace EarthquakeTalker
                             // 처리한 파형 제거.
                             m_samples.RemoveRange(0, sampleCount);
                         }
+                        
 
+                        /// Max PGA
+                        double pga = maxData / Gain;
 
-                        if (maxData > 0)
+                        if (maxStaLta > DangerStaLta / 2 || pga > DangerPga / 2)
                         {
-                            double pga = maxData / Gain;
+                            m_logger.PushLog(Name + "\n PGA: " + pga + "\n STA/LTA: " + maxStaLta);
 
-                            if (pga > 0.0015)
-                            {
-                                m_logger.PushLog(Name + " PGA : " + pga);
-                            }
 
-                            if (pga > DangerPga)
+                            // STA/LTA나 PGA가 위험 수치를 넘어서면
+                            if (maxStaLta > DangerStaLta || pga > DangerPga)
                             {
                                 double mScale = 2.0 * Math.Log10(pga * 980.665);
 
@@ -195,7 +247,7 @@ namespace EarthquakeTalker
                                     Level = Message.Priority.Critical,
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name}에서 진동 감지됨.
-수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
+수치 : PGA-{(pga / DangerPga * 100.0).ToString("F2")}%, STA/LTA-{(maxStaLta / DangerStaLta * 100.0).ToString("F2")}%
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
@@ -274,10 +326,13 @@ namespace EarthquakeTalker
                         int data = 0;
                         if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
                         {
-                            const double weight = 0.9;
-                            m_prevProcData = m_prevProcData * weight + (1.0 - weight) * data;
+                            const double weight = 0.16;
+                            double procData = ((weight + 1) / 2) * (data - m_prevRawData) + weight * m_prevProcData;
 
-                            m_samples.Add(data - m_prevProcData);
+                            m_samples.Add(procData);
+
+                            m_prevRawData = data;
+                            m_prevProcData = procData;
                         }
                         else
                         {
