@@ -56,7 +56,7 @@ namespace EarthquakeTalker
         protected Queue<int> m_sampleCountList = new Queue<int>();
         protected readonly object m_lockSampleCount = new object();
 
-        protected double m_prevRawData = 0;
+        protected double? m_prevRawData = null;
         protected double m_prevProcData = 0;
         protected double? m_prevLongAvg = null;
 
@@ -103,7 +103,7 @@ namespace EarthquakeTalker
 
             m_sampleCountList.Clear();
 
-            m_prevRawData = 0;
+            m_prevRawData = null;
             m_prevProcData = 0;
 
             m_prevLongAvg = null;
@@ -242,9 +242,16 @@ namespace EarthquakeTalker
                             {
                                 double mScale = 2.0 * Math.Log10(pga * 980.665);
 
+
+                                var msgLevel = Message.Priority.High;
+
+                                if (maxStaLta > DangerStaLta)
+                                    msgLevel = Message.Priority.Critical;
+
+
                                 var msg = new Message()
                                 {
-                                    Level = Message.Priority.Critical,
+                                    Level = msgLevel,
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name}에서 진동 감지됨.
 수치 : PGA-{(pga / DangerPga * 100.0).ToString("F2")}%, STA/LTA-{(maxStaLta / DangerStaLta * 100.0).ToString("F2")}%
@@ -311,6 +318,10 @@ namespace EarthquakeTalker
                     }
 
                     m_buffer = new StringBuilder(buf.Substring(m.Index + m.Length));
+
+
+                    m_prevRawData = null;
+                    m_prevProcData = 0;
                 }
             }
             else
@@ -326,13 +337,21 @@ namespace EarthquakeTalker
                         int data = 0;
                         if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
                         {
-                            const double weight = 0.16;
-                            double procData = ((weight + 1) / 2) * (data - m_prevRawData) + weight * m_prevProcData;
+                            if (m_prevRawData == null)
+                            {
+                                m_samples.Add(data);
+                            }
+                            else
+                            {
+                                const double weight = 0.16;
+                                double procData = ((weight + 1) / 2) * (data - m_prevRawData.Value) + weight * m_prevProcData;
 
-                            m_samples.Add(procData);
+                                m_samples.Add(procData);
+
+                                m_prevProcData = procData;
+                            }
 
                             m_prevRawData = data;
-                            m_prevProcData = procData;
                         }
                         else
                         {
