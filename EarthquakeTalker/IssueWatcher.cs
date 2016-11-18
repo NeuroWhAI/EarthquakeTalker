@@ -62,13 +62,13 @@ namespace EarthquakeTalker
 
                 var searchResponse =
                     (from search in m_twitterCtx.Search
-                    where search.Type == SearchType.Search &&
-                          search.Query == this.SearchTerm &&
-                          search.IncludeEntities == true &&
-                          search.ResultType == ResultType.Recent &&
-                          search.SearchLanguage == "ko" &&
-                          search.Count == this.MaxStatusCount * 3
-                    select search).FirstOrDefault();
+                     where search.Type == SearchType.Search &&
+                         search.Query == this.SearchTerm &&
+                         search.IncludeEntities == true &&
+                         search.ResultType == ResultType.Recent &&
+                         search.SearchLanguage == "ko" &&
+                         search.Count == this.MaxStatusCount * 3
+                     select search).FirstOrDefault();
 
 
                 if (searchResponse != null && searchResponse.Statuses != null)

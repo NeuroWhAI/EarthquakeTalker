@@ -52,20 +52,29 @@ namespace EarthquakeTalkerController
             m_onRun = true;
             m_inputTask = Task.Factory.StartNew(delegate ()
             {
+                int graphCount = m_graphList.Count;
+
                 try
                 {
                     while (m_onRun)
                     {
                         var args = Console.ReadLine().Split(' ');
-                        int index = int.Parse(args[0]);
-                        int data = int.Parse(args[1]);
 
-                        m_graphList[index].PushData(data);
+                        int index = -1;
+                        int data = 0;
 
-
-                        lock (m_lockDrawFlag[index])
+                        if (int.TryParse(args[0], out index) && int.TryParse(args[1], out data))
                         {
-                            m_drawFlag[index] = true;
+                            if (index >= 0 && index < graphCount)
+                            {
+                                m_graphList[index].PushData(data);
+
+
+                                lock (m_lockDrawFlag[index])
+                                {
+                                    m_drawFlag[index] = true;
+                                }
+                            }
                         }
                     }
                 }

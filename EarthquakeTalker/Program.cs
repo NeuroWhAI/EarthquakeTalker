@@ -134,7 +134,8 @@ namespace EarthquakeTalker
             inputTask.Wait();
 
 
-            controller.WaitForExit();
+            if (controller.HasExited == false)
+                controller.WaitForExit();
 
             foreach (var worker in workerList)
             {

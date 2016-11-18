@@ -104,6 +104,9 @@ namespace EarthquakeTalkerController
             }
 
 
+            g.Clear(Color.White);
+
+
             g.DrawString(Name, SystemFonts.DefaultFont, Brushes.Black,
                 2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
@@ -161,7 +164,10 @@ namespace EarthquakeTalkerController
                 g = null;
 
                 Directory.CreateDirectory(Path.Combine(SavePath, Name));
-                bitmap.Save(Path.Combine(SavePath, Name, DateTime.Now.ToString("yyyy_MM_dd HH_mm_ss") + ".bmp"));
+
+                string fileName = Path.Combine(SavePath, Name, DateTime.Now.ToString("yyyy_MM_dd HH_mm_ss") + ".bmp");
+                if (File.Exists(fileName) == false)
+                    bitmap.Save(fileName);
 
                 bitmap.Dispose();
                 bitmap = null;
