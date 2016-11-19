@@ -40,7 +40,7 @@ namespace EarthquakeTalker
         { get; set; } = 0.0028;
 
         public double DangerStaLta
-        { get; set; } = 9.5;
+        { get; set; } = 20.0;
 
         public string Name
         { get; set; }
@@ -58,7 +58,11 @@ namespace EarthquakeTalker
 
         protected double? m_prevRawData = null;
         protected double m_prevProcData = 0;
-        protected double? m_prevLongAvg = null;
+
+        protected double m_longAvg = 0;
+        protected double m_shortAvg = 0;
+        protected List<double> m_sampleBuffer = new List<double>();
+        protected int m_samplingRate = 20;
 
         public int Index
         { get; set; } = -1;
@@ -106,7 +110,9 @@ namespace EarthquakeTalker
             m_prevRawData = null;
             m_prevProcData = 0;
 
-            m_prevLongAvg = null;
+            m_longAvg = 0;
+            m_shortAvg = 0;
+            m_sampleBuffer.Clear();
         }
 
         //###########################################################################################################
@@ -168,52 +174,19 @@ namespace EarthquakeTalker
 
                         lock (m_lockSamples)
                         {
-                            /// LTA
-                            double longAvg = 0;
-
-                            // 최댓값을 찾음과 동시에 LTA 계산.
+                            // 최댓값을 찾음과 동시에 Max STA/LTA 계산.
                             foreach (double data in m_samples)
                             {
                                 double absData = Math.Abs(data);
                                 if (absData > maxData)
                                     maxData = absData;
 
-                                longAvg += (data / Gain) * (data / Gain);
-                            }
-
-                            if (longAvg < 0.000001)
-                            {
-                                longAvg = 0.000001;
-                            }
-
-
-                            // Max STA/LTA 계산.
-                            if (m_prevLongAvg != null)
-                            {
-                                int shortTerm = sampleCount / 10;
-
-                                for (int partEnd = shortTerm; partEnd <= sampleCount; partEnd += shortTerm)
+                                double staLta = PushBufferAndGetStaLta(data);
+                                if (staLta > maxStaLta)
                                 {
-                                    /// STA
-                                    double shortAvg = 0;
-
-                                    for (int part = partEnd - shortTerm; part < partEnd; ++part)
-                                    {
-                                        shortAvg += (m_samples[part] / Gain) * (m_samples[part] / Gain);
-                                    }
-
-
-                                    /// STA/LTA
-                                    double staLta = shortAvg / m_prevLongAvg.Value;
-
-                                    if (staLta > maxStaLta)
-                                    {
-                                        maxStaLta = staLta;
-                                    }
+                                    maxStaLta = staLta;
                                 }
                             }
-
-                            m_prevLongAvg = longAvg;
 
 
                             // 비동기로 데이터 수신 이벤트 발생.
@@ -232,7 +205,7 @@ namespace EarthquakeTalker
                         /// Max PGA
                         double pga = maxData / Gain;
 
-                        if (maxStaLta > DangerStaLta / 2 || pga > DangerPga / 2)
+                        if (maxStaLta > DangerStaLta / 3 || pga > DangerPga / 2)
                         {
                             m_logger.PushLog(Name + "\n PGA: " + pga + "\n STA/LTA: " + maxStaLta);
 
@@ -310,6 +283,9 @@ namespace EarthquakeTalker
                     Console.Write('~');
 
 
+                    m_samplingRate = int.Parse(m.Groups[3].ToString());
+
+
                     m_leftSample = int.Parse(m.Groups[2].ToString());
 
                     lock (m_lockSampleCount)
@@ -380,6 +356,47 @@ namespace EarthquakeTalker
                     m_buffer = new StringBuilder(buf.Substring(index + length));
                 }
             }
+        }
+
+        protected double PushBufferAndGetStaLta(double data)
+        {
+            int shortTerm = m_samplingRate / 2;
+            if (shortTerm < 2)
+                shortTerm = 2;
+
+            int longTerm = shortTerm * 10;
+
+
+            m_sampleBuffer.Insert(0, data);
+
+
+            double pga = data / Gain;
+            m_shortAvg += pga * pga;
+
+
+            if (m_sampleBuffer.Count > shortTerm)
+            {
+                double temp = m_sampleBuffer[shortTerm] / Gain;
+                temp = temp * temp;
+
+                m_longAvg += temp;
+                m_shortAvg -= temp;
+            }
+            
+            if (m_sampleBuffer.Count > longTerm + shortTerm)
+            {
+                double oldestData = m_sampleBuffer.Last();
+                double temp = oldestData / Gain;
+                m_longAvg -= temp * temp;
+
+                m_sampleBuffer.RemoveAt(m_sampleBuffer.Count - 1);
+
+
+                return m_shortAvg / Math.Max(m_longAvg, double.Epsilon * 2);
+            }
+
+
+            return 0;
         }
     }
 }
