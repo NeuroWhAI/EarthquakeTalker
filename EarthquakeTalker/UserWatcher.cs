@@ -83,7 +83,7 @@ $");
 
                         if (koreaKeywords.Any((text) => firstTweet.Text.Contains(text)))
                         {
-                            msgLevel = Message.Priority.Critical;
+                            msgLevel = Message.Priority.High;
 
 
                             Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");

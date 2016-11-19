@@ -39,9 +39,6 @@ namespace EarthquakeTalker
         public double DangerPga
         { get; set; } = 0.0028;
 
-        public double DangerStaLta
-        { get; set; } = 20.0;
-
         public string Name
         { get; set; }
 
@@ -58,11 +55,6 @@ namespace EarthquakeTalker
 
         protected double? m_prevRawData = null;
         protected double m_prevProcData = 0;
-
-        protected double m_longAvg = 0;
-        protected double m_shortAvg = 0;
-        protected List<double> m_sampleBuffer = new List<double>();
-        protected int m_samplingRate = 20;
 
         public int Index
         { get; set; } = -1;
@@ -109,10 +101,6 @@ namespace EarthquakeTalker
 
             m_prevRawData = null;
             m_prevProcData = 0;
-
-            m_longAvg = 0;
-            m_shortAvg = 0;
-            m_sampleBuffer.Clear();
         }
 
         //###########################################################################################################
@@ -169,23 +157,14 @@ namespace EarthquakeTalker
                         /// Max Raw Data
                         double maxData = 0;
 
-                        /// Max STA/LTA
-                        double maxStaLta = 0;
-
                         lock (m_lockSamples)
                         {
-                            // 최댓값을 찾음과 동시에 Max STA/LTA 계산.
+                            // 최댓값을 찾음.
                             foreach (double data in m_samples)
                             {
                                 double absData = Math.Abs(data);
                                 if (absData > maxData)
                                     maxData = absData;
-
-                                double staLta = PushBufferAndGetStaLta(data);
-                                if (staLta > maxStaLta)
-                                {
-                                    maxStaLta = staLta;
-                                }
                             }
 
 
@@ -205,29 +184,23 @@ namespace EarthquakeTalker
                         /// Max PGA
                         double pga = maxData / Gain;
 
-                        if (maxStaLta > DangerStaLta / 3 || pga > DangerPga / 2)
+                        if (pga > DangerPga / 2)
                         {
-                            m_logger.PushLog(Name + "\n PGA: " + pga + "\n STA/LTA: " + maxStaLta);
+                            m_logger.PushLog(Name + " PGA : " + pga);
 
 
-                            // STA/LTA나 PGA가 위험 수치를 넘어서면
-                            if (maxStaLta > DangerStaLta || pga > DangerPga)
+                            // PGA가 위험 수치를 넘어서면
+                            if (pga > DangerPga)
                             {
                                 double mScale = 2.0 * Math.Log10(pga * 980.665);
 
 
-                                var msgLevel = Message.Priority.High;
-
-                                if (maxStaLta > DangerStaLta)
-                                    msgLevel = Message.Priority.Critical;
-
-
                                 var msg = new Message()
                                 {
-                                    Level = msgLevel,
+                                    Level = Message.Priority.Critical,
                                     Sender = Selector + " " + Stream + " Station",
-                                    Text = $@"{Name}에서 진동 감지됨.
-수치 : PGA-{(pga / DangerPga * 100.0).ToString("F2")}%, STA/LTA-{(maxStaLta / DangerStaLta * 100.0).ToString("F2")}%
+                                    Text = $@"{Name} 지진계에서 진동 감지됨.
+수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
@@ -281,9 +254,6 @@ namespace EarthquakeTalker
                     //Console.WriteLine("Time: " + m.Groups[4]);
 
                     Console.Write('~');
-
-
-                    m_samplingRate = int.Parse(m.Groups[3].ToString());
 
 
                     m_leftSample = int.Parse(m.Groups[2].ToString());
@@ -356,47 +326,6 @@ namespace EarthquakeTalker
                     m_buffer = new StringBuilder(buf.Substring(index + length));
                 }
             }
-        }
-
-        protected double PushBufferAndGetStaLta(double data)
-        {
-            int shortTerm = m_samplingRate / 2;
-            if (shortTerm < 2)
-                shortTerm = 2;
-
-            int longTerm = shortTerm * 10;
-
-
-            m_sampleBuffer.Insert(0, data);
-
-
-            double pga = data / Gain;
-            m_shortAvg += pga * pga;
-
-
-            if (m_sampleBuffer.Count > shortTerm)
-            {
-                double temp = m_sampleBuffer[shortTerm] / Gain;
-                temp = temp * temp;
-
-                m_longAvg += temp;
-                m_shortAvg -= temp;
-            }
-            
-            if (m_sampleBuffer.Count > longTerm + shortTerm)
-            {
-                double oldestData = m_sampleBuffer.Last();
-                double temp = oldestData / Gain;
-                m_longAvg -= temp * temp;
-
-                m_sampleBuffer.RemoveAt(m_sampleBuffer.Count - 1);
-
-
-                return m_shortAvg / Math.Max(m_longAvg, double.Epsilon * 2);
-            }
-
-
-            return 0;
         }
     }
 }
