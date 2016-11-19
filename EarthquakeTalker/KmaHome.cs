@@ -39,7 +39,7 @@ namespace EarthquakeTalker
         {
             try
             {
-                var kmaNoti = m_client.GetByteArrayAsync(@"http://www.kma.go.kr/bangjae/bang.html");
+                var kmaNoti = m_client.GetByteArrayAsync(@"http://www.kma.go.kr/weather/earthquake_volcano/ajaxEqkNoticePopup.jsp");
 
                 kmaNoti.Wait();
 
@@ -50,25 +50,20 @@ namespace EarthquakeTalker
 
                 if (string.IsNullOrWhiteSpace(kmaNotiHtml) == false)
                 {
-                    int begin = kmaNotiHtml.IndexOf("</span><p>");
+                    int begin = kmaNotiHtml.IndexOf(">");
 
                     if (begin >= 0)
                     {
-                        int end = kmaNotiHtml.IndexOf("</tr>", begin);
+                        int end = kmaNotiHtml.IndexOf("</p>", begin);
 
-                        StringBuilder msgBdr = new StringBuilder(kmaNotiHtml.Substring(begin, end - begin));
-                        msgBdr.Replace("</span><p>", "");
+                        StringBuilder msgBdr = new StringBuilder(kmaNotiHtml.Substring(begin + 1, end - begin - 1));
                         msgBdr.Replace("<br>", "\n");
-                        msgBdr.Replace("</td>", "");
+                        msgBdr.Replace("<br/>", "\n");
                         msgBdr.Replace("&nbsp;", " ");
                         msgBdr.Replace("&lt;", "<");
                         msgBdr.Replace("&gt;", ">");
                         msgBdr.Replace("&amp;", "&");
                         msgBdr.Replace("&quot;", "\"");
-                        msgBdr.Replace("<td width=50%>", "");
-                        msgBdr.Replace("<img src=", "");
-                        msgBdr.Replace("border=0>", "");
-                        msgBdr.Replace("<span class=ehead>", "");
 
                         string noti = msgBdr.ToString().Trim();
 
@@ -91,7 +86,7 @@ namespace EarthquakeTalker
                                 return new Message()
                                 {
                                     Level = Message.Priority.Normal,
-                                    Sender = "기상청 특보",
+                                    Sender = "기상청 지진 안내",
                                     Text = noti,
                                 };
                             }

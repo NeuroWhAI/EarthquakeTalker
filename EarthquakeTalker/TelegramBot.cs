@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.IO;
 using System.Net;
 
@@ -47,11 +48,17 @@ namespace EarthquakeTalker
 
         protected override bool Talk(Message message)
         {
+            /*
+             * HTTP 기반 API : https://core.telegram.org/bots/api
+             */
+
+
             StringBuilder postData = new StringBuilder();
             postData.Append("{\"chat_id\": \"@");
             postData.Append(RoomID);
             postData.Append("\", \"disable_notification\": ");
             postData.Append((message.Level < Message.Priority.High) ? "true" : "false");
+            postData.Append(", \"disable_web_page_preview\": true");
             postData.Append(", \"text\": \"");
 
             StringBuilder bodyData = new StringBuilder(message.ToString());
@@ -82,7 +89,27 @@ namespace EarthquakeTalker
             dataStream.Close();
 
 
-            http.GetResponseAsync();
+            Task.Factory.StartNew(delegate ()
+            {
+                for (int tryPost = 0; tryPost < 2; ++tryPost)
+                {
+                    try
+                    {
+                        var res = http.GetResponse();
+
+                        // 성공적으로 POST.
+                        break;
+                    }
+                    catch (Exception exp)
+                    {
+                        Console.WriteLine(exp.Message);
+                        Console.WriteLine(exp.StackTrace);
+
+                        // 잠시 대기했다가 다시 시도.
+                        Thread.Sleep(3000);
+                    }
+                }
+            });
 
 
             return true;
