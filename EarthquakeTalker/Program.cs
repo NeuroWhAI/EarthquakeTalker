@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.IO;
 
 namespace EarthquakeTalker
 {
@@ -34,6 +35,22 @@ namespace EarthquakeTalker
 
         static void Work()
         {
+            List<string> kakaoRooms = new List<string>();
+            using (StreamReader sr = new StreamReader(new FileStream("kakao.txt", FileMode.Open)))
+            {
+                while (!sr.EndOfStream)
+                {
+                    string room = sr.ReadLine().Trim();
+                    if (string.IsNullOrWhiteSpace(room) == false)
+                    {
+                        kakaoRooms.Add(room);
+                    }
+                }
+
+                sr.Close();
+            }
+
+
             object lockControllerInput = new object();
 
             Process controller = new Process();
@@ -58,7 +75,10 @@ namespace EarthquakeTalker
             // 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
             talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
-            talker.AddTalker(new KakaoTalker("•••지진정보 커뮤니티•••", "지진봇알림"));
+            foreach (string room in kakaoRooms)
+            {
+                talker.AddTalker(new KakaoTalker(room, "지진봇알림"));
+            }
 
             // 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
