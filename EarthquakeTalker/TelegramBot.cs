@@ -89,27 +89,24 @@ namespace EarthquakeTalker
             dataStream.Close();
 
 
-            Task.Factory.StartNew(delegate ()
+            for (int tryPost = 0; tryPost < 3; ++tryPost)
             {
-                for (int tryPost = 0; tryPost < 2; ++tryPost)
+                try
                 {
-                    try
-                    {
-                        var res = http.GetResponse();
+                    var res = http.GetResponse();
 
-                        // 성공적으로 POST.
-                        break;
-                    }
-                    catch (Exception exp)
-                    {
-                        Console.WriteLine(exp.Message);
-                        Console.WriteLine(exp.StackTrace);
-
-                        // 잠시 대기했다가 다시 시도.
-                        Thread.Sleep(3000);
-                    }
+                    // 성공적으로 POST.
+                    break;
                 }
-            });
+                catch (Exception exp)
+                {
+                    Console.WriteLine(exp.Message);
+                    Console.WriteLine(exp.StackTrace);
+
+                    // 잠시 대기했다가 다시 시도.
+                    Thread.Sleep(3000);
+                }
+            }
 
 
             return true;

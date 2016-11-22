@@ -60,9 +60,9 @@ namespace EarthquakeTalker
                 }
 
                 WinApi.SendMessage(m_editBox, 0x000c, IntPtr.Zero, msgText);
+                System.Threading.Thread.Sleep(1000);
                 WinApi.PostMessage(m_editBox, 0x0100, new IntPtr(0xD), new IntPtr(0x1C001));
-
-                System.Threading.Thread.Sleep(200);
+                System.Threading.Thread.Sleep(1000);
 
 
                 return true;

@@ -139,6 +139,7 @@ namespace EarthquakeTalker
 
                     lock (m_lockSamples)
                     {
+                        // 현재까지 얻은 샘플 개수가 충분하면
                         if (m_samples.Count >= sampleCount)
                         {
                             runCheck = true;
@@ -256,7 +257,8 @@ namespace EarthquakeTalker
                     Console.Write('~');
 
 
-                    m_leftSample = int.Parse(m.Groups[2].ToString());
+                    // 얻을 샘플 개수인데 첫번째 데이터는 버리므로 1을 뺌.
+                    m_leftSample = int.Parse(m.Groups[2].ToString()) - 1;
 
                     lock (m_lockSampleCount)
                     {
@@ -283,11 +285,11 @@ namespace EarthquakeTalker
                         int data = 0;
                         if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
                         {
-                            if (m_prevRawData == null)
-                            {
-                                m_samples.Add(data);
-                            }
-                            else
+                            // 첫번째 데이터는 샘플에 넣지 않는다.
+                            // 청크 단위로 파형을 얻고 있기에 이전 파형과 시간적으로 맞물리지 않는 경우가 있어
+                            // 고역통과필터에 문제가 생긴다.
+
+                            if (m_prevRawData != null)
                             {
                                 const double weight = 0.16;
                                 double procData = ((weight + 1) / 2) * (data - m_prevRawData.Value) + weight * m_prevProcData;
@@ -301,14 +303,8 @@ namespace EarthquakeTalker
                         }
                         else
                         {
-                            if (m_samples.Count > 0)
-                            {
-                                m_samples.Add(m_samples.Last());
-                            }
-                            else
-                            {
-                                m_samples.Add(0);
-                            }
+                            m_leftSample = -1;
+                            break;
                         }
                     }
 
