@@ -44,6 +44,11 @@ namespace EarthquakeTalker
             {
                 m_editBox = WinApi.FindWindowEx(room, IntPtr.Zero, "RichEdit20W", null);
             }
+
+            if (m_editBox == IntPtr.Zero)
+                Console.WriteLine("\"" + roomName + "\" 방을 찾을 수 없습니다.");
+            else
+                Console.WriteLine("\"" + roomName + "\" 방을 찾았습니다.");
         }
 
         //################################################################################################
