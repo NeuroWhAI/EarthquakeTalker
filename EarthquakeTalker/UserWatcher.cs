@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Text.RegularExpressions;
 using LinqToTwitter;
 
 namespace EarthquakeTalker
 {
     public class UserWatcher : TwitterWorker
     {
-        public UserWatcher(string userName = "NeuroWhAI")
+        public UserWatcher(string userName = "NeuroWhAI", ITweetFormatter messageMaker = null)
         {
             this.UserName = userName;
+            this.TweetFormatter = messageMaker;
         }
 
         //###########################################################################################################
@@ -23,11 +23,14 @@ namespace EarthquakeTalker
 
         protected Status m_latestTweet = null;
 
+        public ITweetFormatter TweetFormatter
+        { get; set; } = null;
+
         //###########################################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(20.0);
+            this.JobDelay = TimeSpan.FromSeconds(14.0);
 
 
             AuthorizeContext();
@@ -69,46 +72,15 @@ $");
                         m_logger.PushLog(firstTweet.Text);
 
 
-                        StringBuilder alarmText = new StringBuilder(firstTweet.Text);
-
-
-                        var msgLevel = Message.Priority.Normal;
-
-                        var koreaKeywords = new string[]
+                        if (TweetFormatter != null)
                         {
-                            "경북", "경남", "경기", "전남", "전북", "제주", "서울", "충남", "충북",
-                            "북도", "남도", "광역시", "특별",
-                            "부산", "대구", "인천", "광주", "대전", "울산", "세종", "강원",
-                        };
+                            var msg = TweetFormatter.FormatTweet(firstTweet);
 
-                        if (koreaKeywords.Any((text) => firstTweet.Text.Contains(text)))
-                        {
-                            msgLevel = Message.Priority.High;
+                            msg.Sender = UserName + " 트위터";
 
 
-                            Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
-                            var match = rgx.Match(firstTweet.Text);
-                            if (match.Success)
-                            {
-                                double scale = 0.0;
-                                if (double.TryParse(match.Groups[1].ToString(), out scale))
-                                {
-                                    alarmText.AppendLine();
-                                    alarmText.AppendLine();
-
-                                    alarmText.Append(EarthquakeKnowHow.GetKnowHow(scale));
-                                }
-                            }
+                            return msg;
                         }
-
-
-                        return new Message()
-                        {
-                            Level = msgLevel,
-                            Sender = UserName + " 트위터",
-                            Text = $@"[기상청 지진정보서비스]
-{alarmText.ToString()}",
-                        };
                     }
                     else
                     {
@@ -122,7 +94,7 @@ $");
                 Console.WriteLine(exp.StackTrace);
 
 
-                Thread.Sleep(10000);
+                Thread.Sleep(TimeSpan.FromSeconds(10));
 
                 AuthorizeContext();
             }

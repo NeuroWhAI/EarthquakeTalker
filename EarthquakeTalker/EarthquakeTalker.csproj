@@ -69,7 +69,9 @@
   <ItemGroup>
     <Compile Include="EarthquakeKnowHow.cs" />
     <Compile Include="IssueWatcher.cs" />
+    <Compile Include="ITweetFormatter.cs" />
     <Compile Include="KakaoTalker.cs" />
+    <Compile Include="KMAEarthquakeFormatter.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MultipleTalker.cs" />

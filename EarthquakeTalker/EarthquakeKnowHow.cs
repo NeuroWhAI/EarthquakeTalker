@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EarthquakeTalker
 {
-    public class EarthquakeKnowHow
+    public static class EarthquakeKnowHow
     {
         public static string GetKnowHow(double richterMScale)
         {
@@ -18,11 +18,18 @@ namespace EarthquakeTalker
             str.AppendLine($"[국내 규모{richterMScale.ToString("F1")} 지진 발생시 행동요령]");
 
 
-            if (richterMScale < 3.0)
+            if (richterMScale < 2.6)
             {
                 // 민감한 사람은 느낄 수 있음.
 
                 str.AppendLine("비교적 좁은 범위에서 민감한 사람이 진동을 감지할 수 있습니다.");
+                str.AppendLine("우려되는 피해는 없으며 침착하시고 소식에 귀를 기울여주시기 바랍니다.");
+            }
+            else if (richterMScale < 3.2)
+            {
+                // 가만히 있던 사람은 느낄 수 있음.
+
+                str.AppendLine("비교적 좁은 범위에서 다수의 사람들이 진동을 감지할 수 있습니다.");
                 str.AppendLine("우려되는 피해는 없으며 침착하시고 소식에 귀를 기울여주시기 바랍니다.");
             }
             else if (richterMScale < 4.0)

@@ -86,10 +86,13 @@ namespace EarthquakeTalker
 
         protected void StopProcess()
         {
-            m_proc.Close();
+            m_proc.CloseMainWindow();
             m_proc.WaitForExit(3000);
-            m_proc.Kill();
-            m_proc.Dispose();
+            if (m_proc.HasExited == false)
+            {
+                m_proc.Kill();
+                m_proc.Dispose();
+            }
             m_proc = null;
 
             m_buffer.Clear();
