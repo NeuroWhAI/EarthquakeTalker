@@ -108,7 +108,7 @@ namespace EarthquakeTalker
                             msg.AppendLine();
 
                             msg.AppendLine("[트윗 내용]");
-                            for (int i = 0; i < this.MaxStatusCount; ++i)
+                            for (int i = 0; i < this.MaxStatusCount / 2; ++i)
                             {
                                 string text = statuses[i].Text.Replace('\n', ' ');
 
@@ -117,6 +117,7 @@ namespace EarthquakeTalker
                                 else
                                     msg.AppendLine(text);
                             }
+                            msg.AppendLine("(이하 생략)");
 
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.

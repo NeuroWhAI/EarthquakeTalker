@@ -79,21 +79,23 @@ namespace EarthquakeTalker
             byte[] byteArray = Encoding.UTF8.GetBytes(postData.ToString());
 
 
-            var http = WebRequest.CreateHttp("https://api.telegram.org/" + BotKey + "/SendMessage");
-            http.Method = "POST";
-            http.ContentType = "application/json";
-            http.ContentLength = byteArray.Length;
-
-            Stream dataStream = http.GetRequestStream();
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            dataStream.Close();
-
-
-            for (int tryPost = 0; tryPost < 3; ++tryPost)
+            for (int tryPost = 0; tryPost < 5; ++tryPost)
             {
                 try
                 {
+                    var http = WebRequest.CreateHttp("https://api.telegram.org/" + BotKey + "/SendMessage");
+                    http.Method = "POST";
+                    http.ContentType = "application/json";
+                    http.ContentLength = byteArray.Length;
+
+
+                    Stream dataStream = http.GetRequestStream();
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                    dataStream.Close();
+
+
                     var res = http.GetResponse();
+
 
                     // 성공적으로 POST.
                     break;

@@ -110,7 +110,7 @@ namespace EarthquakeTalker
             workerList.Add(new UserWatcher("KMA_earthquake", new KMAEarthquakeFormatter()));
             workerList.Add(new KmaHome());
             workerList.AddRange(seismographList);
-            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http", TimeSpan.FromSeconds(25.0), 30));
+            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http", TimeSpan.FromSeconds(25.0), 20));
 
 
             int sensorIndex = 0;
