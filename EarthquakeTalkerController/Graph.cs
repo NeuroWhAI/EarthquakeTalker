@@ -107,14 +107,33 @@ namespace EarthquakeTalkerController
             g.Clear(Color.White);
 
 
+            int[] copyWaveform = null;
+
+            lock (m_lockWaveform)
+            {
+                copyWaveform = m_waveform.ToArray();
+            }
+
+
+            int maxData = 0;
+
+            foreach (var data in copyWaveform)
+            {
+                var adbData = Math.Abs(data);
+                if (adbData > maxData)
+                    maxData = adbData;
+            }
+
+
+            HeightScale = size.Height / 2 * 0.9 / Math.Max(maxData / Gain, DangerPga / 4);
+
+
             g.DrawString(Name, SystemFonts.DefaultFont, Brushes.Black,
-                2, size.Height - SystemFonts.DefaultFont.Height - 2);
+            2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
             g.DrawString("Scale: " + HeightScale, SystemFonts.DefaultFont, Brushes.Black, 258, 2);
             g.DrawString("Max PGA: " + (m_tempMax / Gain) + "g",
                 SystemFonts.DefaultFont, Brushes.Black, 258, 4 + SystemFonts.DefaultFont.Height);
-
-            int maxData = 0;
 
 
             int halfHeight = size.Height / 2;
@@ -124,30 +143,24 @@ namespace EarthquakeTalkerController
                 size.Width, halfHeight + dangerY);
             g.DrawLine(Pens.Red, 0, halfHeight - dangerY,
                 size.Width, halfHeight - dangerY);
+            
 
-            lock (m_lockWaveform)
+            if (copyWaveform.Length > 0)
             {
-                if (m_waveform.Count > 0)
+                double widthScale = (double)size.Width / copyWaveform.Length;
+
+                int i = 0;
+                float prevY = 0;
+
+                foreach (var data in copyWaveform)
                 {
-                    double widthScale = (double)size.Width / m_waveform.Count;
+                    float y = (float)(data / Gain * HeightScale);
 
-                    int i = 0;
-                    float prevY = 0;
+                    g.DrawLine(Pens.Blue, (float)((i - 1) * widthScale), prevY + halfHeight,
+                        (float)(i * widthScale), y + halfHeight);
 
-                    foreach (var data in m_waveform)
-                    {
-                        if (Math.Abs(data) > maxData)
-                            maxData = Math.Abs(data);
-
-
-                        float y = (float)(data / Gain * HeightScale);
-
-                        g.DrawLine(Pens.Blue, (float)((i - 1) * widthScale), prevY + halfHeight,
-                            (float)(i * widthScale), y + halfHeight);
-
-                        prevY = y;
-                        ++i;
-                    }
+                    prevY = y;
+                    ++i;
                 }
             }
 
