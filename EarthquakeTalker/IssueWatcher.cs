@@ -41,7 +41,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(22.0);
+            this.JobDelay = TimeSpan.FromSeconds(16.0);
 
 
             AuthorizeContext();
@@ -57,7 +57,7 @@ namespace EarthquakeTalker
             try
             {
                 // 원래 딜레이로 복귀
-                this.JobDelay = TimeSpan.FromSeconds(22.0);
+                this.JobDelay = TimeSpan.FromSeconds(16.0);
 
 
                 var searchResponse =
@@ -112,8 +112,8 @@ namespace EarthquakeTalker
                             {
                                 string text = statuses[i].Text.Replace('\n', ' ');
 
-                                if (text.Length > 24)
-                                    msg.AppendLine(text.Substring(0, 24) + "...");
+                                if (text.Length > 8 + this.MaxTextLength / 2)
+                                    msg.AppendLine(text.Substring(0, 8 + this.MaxTextLength / 2) + "...");
                                 else
                                     msg.AppendLine(text);
                             }
@@ -122,6 +122,7 @@ namespace EarthquakeTalker
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.
                             this.JobDelay = TimeSpan.FromMinutes(10.0);
+
 
                             return new Message()
                             {
@@ -142,7 +143,7 @@ namespace EarthquakeTalker
                 Console.WriteLine(exp.StackTrace);
 
 
-                Thread.Sleep(10000);
+                Thread.Sleep(8000);
 
                 AuthorizeContext();
             }
