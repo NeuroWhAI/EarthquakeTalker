@@ -161,10 +161,17 @@ namespace EarthquakeTalker
                         /// Max Raw Data
                         double maxData = 0;
 
+                        /// 청크 샘플
+                        List<double> subSamples = null;
+
                         lock (m_lockSamples)
                         {
+                            // 파형 저장.
+                            subSamples = Enumerable.Take(m_samples, sampleCount).ToList();
+
+
                             // 최댓값을 찾음.
-                            foreach (double data in m_samples)
+                            foreach (double data in subSamples)
                             {
                                 double absData = Math.Abs(data);
                                 if (absData > maxData)
@@ -172,18 +179,17 @@ namespace EarthquakeTalker
                             }
 
 
-                            // 비동기로 데이터 수신 이벤트 발생.
-                            var subSamples = Enumerable.Take(m_samples, sampleCount).ToList();
-                            Task.Factory.StartNew(delegate ()
-                            {
-                                WhenDataReceived(this.Index, subSamples);
-                            });
-
-
                             // 처리한 파형 제거.
                             m_samples.RemoveRange(0, sampleCount);
                         }
-                        
+
+
+                        // 비동기로 데이터 수신 이벤트 발생.
+                        Task.Factory.StartNew(delegate ()
+                        {
+                            WhenDataReceived(this.Index, subSamples);
+                        });
+
 
                         /// Max PGA
                         double pga = maxData / Gain;

@@ -37,7 +37,7 @@ namespace EarthquakeTalker
                 // 좁은 범위에서 많은 사람이 느끼고 사물이 움직일 수 있음.
 
                 str.AppendLine("넓은 범위에서 많은 사람들이 진동을 감지할 수 있습니다.");
-                str.AppendLine("떨어지기 쉬운 물건을 정비하시고 어려울경우 떨어져 계셔야 합니다.");
+                str.AppendLine("떨어지기 쉬운 물건을 정비하시고 어려울 경우 떨어져 계셔야 합니다.");
                 str.AppendLine("크게 우려되는 피해는 없으며 소식에 귀를 기울여주시기 바랍니다.");
             }
             else if (richterMScale < 5.0)
@@ -79,7 +79,7 @@ namespace EarthquakeTalker
                 str.AppendLine("진동이 잦아들면 머리를 보호하며 바깥의 넓은 곳으로 대피하시기 바랍니다.");
                 str.AppendLine("산사태가 발생할 수 있으니 주의하시길 바랍니다.");
                 str.AppendLine("큰 여진이 뒤따를 수 있으니 주의하시기 바랍니다.");
-                str.AppendLine("해안 지진의 경우 해일이 발생할 수 있으므로 높은 곳으로 이동하시기 바랍니다.");
+                str.AppendLine("해저 지진의 경우 해일이 발생할 수 있으므로 즉시 높은 곳으로 이동하시기 바랍니다.");
             }
 
 

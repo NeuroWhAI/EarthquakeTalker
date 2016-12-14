@@ -41,7 +41,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(16.0);
+            this.JobDelay = TimeSpan.FromSeconds(10.0);
 
 
             AuthorizeContext();
@@ -57,7 +57,7 @@ namespace EarthquakeTalker
             try
             {
                 // 원래 딜레이로 복귀
-                this.JobDelay = TimeSpan.FromSeconds(16.0);
+                this.JobDelay = TimeSpan.FromSeconds(10.0);
 
 
                 var searchResponse =
@@ -121,7 +121,7 @@ namespace EarthquakeTalker
 
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.
-                            this.JobDelay = TimeSpan.FromMinutes(10.0);
+                            this.JobDelay = TimeSpan.FromMinutes(18.0);
 
 
                             return new Message()
