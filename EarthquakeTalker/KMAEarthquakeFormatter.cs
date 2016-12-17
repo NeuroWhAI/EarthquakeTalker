@@ -40,7 +40,7 @@ namespace EarthquakeTalker
                         alarmText.AppendLine();
                         alarmText.AppendLine();
 
-                        alarmText.Append(EarthquakeKnowHow.GetKnowHow(scale));
+                        alarmText.Append(Earthquake.GetKnowHowFromMScale(scale));
                     }
                 }
             }

@@ -202,7 +202,7 @@ namespace EarthquakeTalker
                             // PGA가 위험 수치를 넘어서면
                             if (pga > DangerPga)
                             {
-                                double mScale = 2.0 * Math.Log10(pga * 980.665);
+                                int mmi = Earthquake.ConvertToMMI(pga);
 
 
                                 var msg = new Message()
@@ -211,10 +211,11 @@ namespace EarthquakeTalker
                                     Sender = Selector + " " + Stream + " Station",
                                     Text = $@"{Name} 지진계에서 진동 감지됨.
 수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
+예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
-{EarthquakeKnowHow.GetKnowHow(mScale)}",
+{Earthquake.GetKnowHowFromMMI(mmi)}",
                                 };
 
 

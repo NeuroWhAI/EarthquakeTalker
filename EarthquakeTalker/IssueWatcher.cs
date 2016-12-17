@@ -117,7 +117,7 @@ namespace EarthquakeTalker
                                 else
                                     msg.AppendLine(text);
                             }
-                            msg.AppendLine("(이하 생략)");
+                            msg.AppendLine("...");
 
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.

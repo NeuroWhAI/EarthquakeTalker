@@ -6,9 +6,125 @@ using System.Threading.Tasks;
 
 namespace EarthquakeTalker
 {
-    public static class EarthquakeKnowHow
+    public static class Earthquake
     {
-        public static string GetKnowHow(double richterMScale)
+        public static int ConvertToMMI(double pga)
+        {
+            // NOTE: https://en.wikipedia.org/wiki/Mercalli_intensity_scale
+            // NOTE: https://namu.wiki/w/진도(지진)
+
+            if (pga < 0)
+                return 0;
+            if (pga < 0.0017)
+                return 1;
+            if (pga < 0.00645)
+                return 2;
+            if (pga < 0.014)
+                return 3;
+            if (pga < 0.039)
+                return 4;
+            if (pga < 0.092)
+                return 5;
+            if (pga < 0.18)
+                return 6;
+            if (pga < 0.34)
+                return 7;
+            if (pga < 0.65)
+                return 8;
+            if (pga < 1.24)
+                return 9;
+            return 10;
+        }
+
+        public static string MMIToString(int mmi)
+        {
+            string[] arr =
+            {
+                "I-", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XII+"
+            };
+
+            if (mmi < 0)
+                return arr.First();
+            if (mmi >= arr.Length)
+                return arr.Last();
+
+            return arr[mmi];
+        }
+
+        public static string GetKnowHowFromMMI(int mmi)
+        {
+            StringBuilder str = new StringBuilder("");
+            str.AppendLine($"[진도(MMI) {MMIToString(mmi)} 특징]");
+
+
+            if (mmi <= 0)
+            {
+                str.AppendLine("무감.");
+            }
+            else if (mmi == 1)
+            {
+                str.AppendLine("미세한 진동. 특수한 조건에서 극히 소수 느낌.");
+            }
+            else if (mmi == 2)
+            {
+                str.AppendLine("실내에서 극히 소수 느낌.");
+            }
+            else if (mmi == 3)
+            {
+                str.AppendLine("실내에서 소수 느낌. 매달린 물체가 약하게 움직임.");
+            }
+            else if (mmi == 4)
+            {
+                str.AppendLine("실내에서 다수 느낌. 실외에서는 감지하지 못함.");
+                str.AppendLine("일부의 사람들이 잠에서 깸. 사물이 떨리는 소리가 들림.");
+            }
+            else if (mmi == 5)
+            {
+                str.AppendLine("건물 전체가 흔들림. 물체의 파손, 뒤집힘, 추락.");
+                str.AppendLine("가벼운 물체의 위치 이동. 다수의 사람들이 잠에서 깸.");
+            }
+            else if (mmi == 6)
+            {
+                str.AppendLine("똑바로 걷기 어려움. 약한 건물의 회벽이 떨어지거나 금이 감.");
+                str.AppendLine("무거운 물체의 이동 또는 뒤집힘.");
+            }
+            else if (mmi == 7)
+            {
+                str.AppendLine("서 있기 곤란함. 운전 중에도 지진을 느낌.");
+                str.AppendLine("회벽이 무너지고 느슨한 적재물과 담장이 무너짐.");
+                str.AppendLine("보통의 건물들에 경미한 손상.");
+            }
+            else if (mmi == 8)
+            {
+                str.AppendLine("차량운전 곤란. 일부 건물 붕괴.");
+                str.AppendLine("사면이나 지표의 균열.탑·굴뚝 붕괴.");
+            }
+            else if (mmi == 9)
+            {
+                str.AppendLine("견고한 건물의 피해가 심하거나 붕괴.");
+                str.AppendLine("지표의 균열이 발생하고 지하 파이프관 파손.");
+            }
+            else if (mmi == 10)
+            {
+                str.AppendLine("대다수 견고한 건물과 구조물 파괴.");
+                str.AppendLine("지표균열, 대규모 사태, 아스팔트 균열.");
+            }
+            else if (mmi == 11)
+            {
+                str.AppendLine("철로가 심하게 휨. 구조물 거의 파괴. 지하 파이프관 작동 불가능.");
+            }
+            else if (mmi == 12)
+            {
+                str.AppendLine("천재지변. 모든 것이 완파된다.");
+                str.AppendLine("지면이 파도 형태로 움직임.물체가 공중으로 튀어오름.");
+                str.AppendLine("큰 바위가 굴러 떨어짐.강의 경로가 바뀜.");
+            }
+
+
+            return str.ToString().TrimEnd();
+        }
+
+        public static string GetKnowHowFromMScale(double richterMScale)
         {
             if (richterMScale < 0.0)
                 return "";

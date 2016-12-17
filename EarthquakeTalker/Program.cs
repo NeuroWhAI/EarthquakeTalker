@@ -110,15 +110,16 @@ namespace EarthquakeTalker
             workerList.Add(new UserWatcher("KMA_earthquake", new KMAEarthquakeFormatter()));
             workerList.Add(new KmaHome());
             workerList.AddRange(seismographList);
-            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라",
+            workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
-
 
             int sensorIndex = 0;
             foreach (var sensor in seismographList)
             {
+                // 지진계 인덱스 설정
                 sensor.Index = sensorIndex;
 
+                // GUI에 지진계 정보 전달
                 controller.StandardInput.WriteLine(sensor.Name + "|" + sensor.Gain + "|" + sensor.DangerPga);
 
                 sensor.WhenDataReceived += new Seismograph.SeismographDataReceivedEventHandler((index, waveform) =>
@@ -137,6 +138,7 @@ namespace EarthquakeTalker
             }
 
 
+            // 메세지 생성자 시작
             foreach (var worker in workerList)
             {
                 worker.Start(talker, logger);
