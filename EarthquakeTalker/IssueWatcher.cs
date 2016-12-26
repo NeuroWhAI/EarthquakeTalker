@@ -13,6 +13,8 @@ namespace EarthquakeTalker
         public IssueWatcher(string keyword, string searchTerm, TimeSpan triggerTime,
             int maxStatusCount = 20, int maxTextLength = 32)
         {
+            m_filterKeywords[0] = "RT";
+
             this.Keyword = keyword;
             this.SearchTerm = searchTerm;
             this.TriggerTime = triggerTime;
@@ -25,8 +27,30 @@ namespace EarthquakeTalker
         public string Keyword
         { get; set; } = "";
 
+        private string[] m_filterKeywords = new string[1];
+        private string m_searchTerm = "";
         public string SearchTerm
-        { get; set; } = "";
+        {
+            get { return m_searchTerm; }
+            set
+            {
+                m_searchTerm = value;
+
+                var keywords = new List<string>();
+                var data = value.Split('+');
+
+                keywords.Add("RT");
+                foreach (string word in data)
+                {
+                    if (word[0] == '-')
+                    {
+                        keywords.Add(word.Substring(1, word.Length - 1));
+                    }
+                }
+
+                m_filterKeywords = keywords.ToArray();
+            }
+        }
 
         public TimeSpan TriggerTime
         { get; set; }
@@ -78,7 +102,7 @@ namespace EarthquakeTalker
                     // 특정 길이 이상이거나 리트윗 등 방해되는 트윗은 제외.
                     statuses.RemoveAll(delegate (Status status)
                     {
-                        return (status.Text.Length > MaxTextLength || status.Text.Contains("RT"));
+                        return (status.Text.Length > MaxTextLength || m_filterKeywords.Any((filter) => status.Text.Contains(filter)));
                     });
 
 
@@ -117,7 +141,7 @@ namespace EarthquakeTalker
                                 else
                                     msg.AppendLine(text);
                             }
-                            msg.AppendLine("...");
+                            msg.Append("...");
 
 
                             // 한번 트리거되면 도배를 방지하기 위해서 좀더 오래동안 작동하지 않음.
