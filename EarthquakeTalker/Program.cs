@@ -101,9 +101,10 @@ namespace EarthquakeTalker
 
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
-            seismographList.Add(new Seismograph("slinktool.exe", "00BH1", "IU_INCN", 3.352080e+09 / 100, "인천"));
-            seismographList.Add(new Seismograph("slinktool.exe", "BHE", "JP_JTU", 1.000000e+09 / 100, "대마도"));
-            seismographList.Add(new Seismograph("slinktool.exe", "BHE", "KG_TJN", 3.352080e+09 / 100, "대전"));
+            seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천"));
+            seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHE", "JP", "JTU", 1.000000e+09 / 100, "대마도"));
+            seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHE", "KG", "TJN", 6.327240e+08 / 100, "대전"));
+            seismographList.Add(new FDSNSeismograph("mseedviewer.exe", "--", "BHE", "KS", "BUS2", 6.289740e+08 / 100, "부산"));
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
@@ -129,7 +130,7 @@ namespace EarthquakeTalker
                         foreach (int data in waveform)
                         {
                             if (controller.HasExited == false)
-                                controller.StandardInput.WriteLine(index + " " + data);
+                                controller.StandardInput.WriteLine(index + "|" + data);
                         }
                     }
                 });

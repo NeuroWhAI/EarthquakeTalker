@@ -10,24 +10,24 @@ namespace EarthquakeTalker
 {
     public class Seismograph : Worker
     {
-        public Seismograph(string slinktoolPath, string selector, string stream, double gain, string name = "")
+        public Seismograph(string channel, string network, string station, double gain, string name = "")
         {
-            SLinkToolPath = slinktoolPath;
-            Selector = selector;
-            Stream = stream;
+            Channel = channel;
+            Network = network;
+            Station = station;
             Gain = gain;
             Name = name;
         }
 
         //###########################################################################################################
 
-        public string SLinkToolPath
+        public string Channel
         { get; protected set; } = string.Empty;
 
-        public string Selector
+        public string Network
         { get; protected set; } = string.Empty;
 
-        public string Stream
+        public string Station
         { get; protected set; } = string.Empty;
 
         /// <summary>
@@ -42,19 +42,14 @@ namespace EarthquakeTalker
         public string Name
         { get; set; }
 
-        protected Process m_proc = null;
+        private List<double> m_samples = new List<double>();
+        private readonly object m_lockSamples = new object();
 
-        protected StringBuilder m_buffer = new StringBuilder();
-        protected int m_leftSample = 0;
+        private Queue<int> m_sampleCountList = new Queue<int>();
+        private readonly object m_lockSampleCount = new object();
 
-        protected List<double> m_samples = new List<double>();
-        protected readonly object m_lockSamples = new object();
-
-        protected Queue<int> m_sampleCountList = new Queue<int>();
-        protected readonly object m_lockSampleCount = new object();
-
-        protected double? m_prevRawData = null;
-        protected double m_prevProcData = 0;
+        private double? m_prevRawData = null;
+        private double m_prevProcData = 0;
 
         public int Index
         { get; set; } = -1;
@@ -63,62 +58,19 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        protected void StartProcess()
+        protected override void BeforeStart(MultipleTalker talker)
         {
-            m_proc = new Process();
-            m_proc.StartInfo = new ProcessStartInfo()
-            {
-                Arguments = "-p -u -s " + Selector + " -S " + Stream + " rtserve.iris.washington.edu:18000",
-                CreateNoWindow = true,
-                FileName = SLinkToolPath,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-            };
-
-
-            m_proc.OutputDataReceived += Proc_OutputDataReceived;
-
-
-            m_proc.Start();
-
-            m_proc.BeginOutputReadLine();
+            this.JobDelay = TimeSpan.FromSeconds(1.0);
         }
 
-        protected void StopProcess()
+        protected override void AfterStop(MultipleTalker talker)
         {
-            m_proc.CloseMainWindow();
-            m_proc.WaitForExit(3000);
-            if (m_proc.HasExited == false)
-            {
-                m_proc.Kill();
-                m_proc.Dispose();
-            }
-            m_proc = null;
-
-            m_buffer.Clear();
-            m_leftSample = 0;
-
             m_samples.Clear();
 
             m_sampleCountList.Clear();
 
             m_prevRawData = null;
             m_prevProcData = 0;
-        }
-
-        //###########################################################################################################
-
-        protected override void BeforeStart(MultipleTalker talker)
-        {
-            this.JobDelay = TimeSpan.FromSeconds(1.0);
-
-
-            StartProcess();
-        }
-
-        protected override void AfterStop(MultipleTalker talker)
-        {
-            StopProcess();
         }
 
         protected override Message OnWork()
@@ -208,7 +160,7 @@ namespace EarthquakeTalker
                                 var msg = new Message()
                                 {
                                     Level = Message.Priority.Critical,
-                                    Sender = Selector + " " + Stream + " Station",
+                                    Sender = Channel + " " + Network + "_" + Station + " Station",
                                     Text = $@"{Name} 지진계에서 진동 감지됨.
 수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
@@ -232,13 +184,6 @@ namespace EarthquakeTalker
             {
                 Console.WriteLine(exp.Message);
                 Console.WriteLine(exp.StackTrace);
-
-                if (m_onRunning)
-                {
-                    StopProcess();
-                    System.Threading.Thread.Sleep(3000);
-                    StartProcess();
-                }
             }
 
 
@@ -247,91 +192,41 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        private void Proc_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        protected void ReserveChunk(string location, int sampleCount, int samplingRate, string time)
         {
-            m_buffer.Append(e.Data);
-            string buf = m_buffer.ToString();
+            Console.Write('~');
 
 
-            if (m_leftSample <= 0)
+            lock (m_lockSampleCount)
             {
-                Regex rgx = new Regex(@"([^,]+),\s?(\d+)\s?samples,\s?(\d+)\s?Hz,\s?([^\s]+)\s?\(.+\)");
-                var m = rgx.Match(buf);
-                if (m.Success)
-                {
-                    //Console.WriteLine("Location: " + m.Groups[1]);
-                    //Console.WriteLine("Samples: " + m.Groups[2]);
-                    //Console.WriteLine("Hz: " + m.Groups[3]);
-                    //Console.WriteLine("Time: " + m.Groups[4]);
-
-                    Console.Write('~');
-
-
-                    // 얻을 샘플 개수인데 첫번째 데이터는 버리므로 1을 뺌.
-                    m_leftSample = int.Parse(m.Groups[2].ToString()) - 1;
-
-                    lock (m_lockSampleCount)
-                    {
-                        m_sampleCountList.Enqueue(m_leftSample);
-                    }
-
-                    m_buffer = new StringBuilder(buf.Substring(m.Index + m.Length));
-
-
-                    m_prevRawData = null;
-                    m_prevProcData = 0;
-                }
+                // 얻을 샘플 개수인데 첫번째 데이터는 버리므로 1을 뺌.
+                m_sampleCountList.Enqueue(sampleCount - 1);
             }
-            else
+
+            m_prevRawData = null;
+            m_prevProcData = 0;
+        }
+
+        protected void AppendSample(int data)
+        {
+            // 첫번째 데이터는 샘플에 넣지 않는다.
+            // 청크 단위로 파형을 얻고 있기에 이전 파형과 시간적으로 맞물리지 않는 경우가 있어
+            // 고역통과필터에 문제가 생긴다.
+
+            if (m_prevRawData != null)
             {
-                int index = -1, length = 0;
+                const double weight = 0.16;
+                double procData = ((weight + 1) / 2) * (data - m_prevRawData.Value) + weight * m_prevProcData;
 
-                Regex rgx = new Regex(@"(-?\d+)\s+");
-                var m = rgx.Match(buf);
-                while (m.Success)
+                lock (m_lockSamples)
                 {
-                    lock (m_lockSamples)
-                    {
-                        int data = 0;
-                        if (int.TryParse(m.Groups[1].ToString().Trim(), out data))
-                        {
-                            // 첫번째 데이터는 샘플에 넣지 않는다.
-                            // 청크 단위로 파형을 얻고 있기에 이전 파형과 시간적으로 맞물리지 않는 경우가 있어
-                            // 고역통과필터에 문제가 생긴다.
-
-                            if (m_prevRawData != null)
-                            {
-                                const double weight = 0.16;
-                                double procData = ((weight + 1) / 2) * (data - m_prevRawData.Value) + weight * m_prevProcData;
-
-                                m_samples.Add(procData);
-
-                                m_prevProcData = procData;
-                            }
-
-                            m_prevRawData = data;
-                        }
-                        else
-                        {
-                            m_leftSample = -1;
-                            break;
-                        }
-                    }
-
-
-                    index = m.Index;
-                    length = m.Length;
-
-                    m_leftSample--;
-
-                    m = m.NextMatch();
+                    m_samples.Add(procData);
                 }
 
-                if (index >= 0)
-                {
-                    m_buffer = new StringBuilder(buf.Substring(index + length));
-                }
+                m_prevProcData = procData;
             }
+
+            m_prevRawData = data;
         }
     }
 }

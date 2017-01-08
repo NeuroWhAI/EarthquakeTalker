@@ -129,7 +129,7 @@ namespace EarthquakeTalkerController
 
 
             g.DrawString(Name, SystemFonts.DefaultFont, Brushes.Black,
-            2, size.Height - SystemFonts.DefaultFont.Height - 2);
+                2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
             g.DrawString("Scale: " + HeightScale, SystemFonts.DefaultFont, Brushes.Black, 258, 2);
             g.DrawString("Max PGA: " + (m_tempMax / Gain) + "g",

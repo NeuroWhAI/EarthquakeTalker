@@ -21,6 +21,7 @@ namespace EarthquakeTalkerController
             m_graphList.Add(new Graph());
             m_graphList.Add(new Graph());
             m_graphList.Add(new Graph());
+            m_graphList.Add(new Graph());
 
             foreach (var graph in m_graphList)
             {
@@ -34,13 +35,17 @@ namespace EarthquakeTalkerController
         protected List<Graph> m_graphList = new List<Graph>();
         protected bool m_onRun = false;
 
-        protected bool[] m_drawFlag = { false, false, false };
-        protected readonly object[] m_lockDrawFlag = { new object(), new object(), new object() };
+        protected bool[] m_drawFlag = { false, false, false, false };
+        protected readonly object[] m_lockDrawFlag = { new object(), new object(), new object(), new object() };
 
         //##############################################################################################
 
         private void Form_Main_Load(object sender, EventArgs e)
         {
+            System.Diagnostics.Debug.Assert(m_graphList.Count == m_drawFlag.Length
+                && m_graphList.Count == m_lockDrawFlag.Length);
+
+
             foreach (var graph in m_graphList)
             {
                 var args = Console.ReadLine().Split('|');
@@ -58,7 +63,7 @@ namespace EarthquakeTalkerController
                 {
                     while (m_onRun)
                     {
-                        var args = Console.ReadLine().Split(' ');
+                        var args = Console.ReadLine().Split('|');
 
                         int index = -1;
                         int data = 0;
@@ -78,8 +83,11 @@ namespace EarthquakeTalkerController
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception exp)
                 {
+                    MessageBox.Show(exp.Message + "\n\n" + exp.StackTrace, "Error!",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                     return;
                 }
             });
@@ -106,6 +114,11 @@ namespace EarthquakeTalkerController
         private void panel_graph3_Paint(object sender, PaintEventArgs e)
         {
             m_graphList[2].Draw(e.Graphics, this.panel_graph3.Size);
+        }
+
+        private void panel_graph4_Paint(object sender, PaintEventArgs e)
+        {
+            m_graphList[3].Draw(e.Graphics, this.panel_graph4.Size);
         }
 
         //##############################################################################################
@@ -154,6 +167,11 @@ namespace EarthquakeTalkerController
         private void panel_graph3_Click(object sender, EventArgs e)
         {
             ToggleGraphVisible(2);
+        }
+
+        private void panel_graph4_Click(object sender, EventArgs e)
+        {
+            ToggleGraphVisible(3);
         }
     }
 }
