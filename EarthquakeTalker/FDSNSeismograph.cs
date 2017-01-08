@@ -33,9 +33,13 @@ namespace EarthquakeTalker
         private int m_leftSample = 0;
 
         private DateTime m_latestDownloadTime = DateTime.UtcNow;
+        private DateTime m_latestCheckTime = DateTime.UtcNow;
 
         public TimeSpan DownloadInterval
         { get; set; } = TimeSpan.FromSeconds(8.0);
+
+        public TimeSpan CheckInterval
+        { get; set; } = TimeSpan.FromSeconds(4.0);
 
         private string m_prevSeedFile = string.Empty;
         private bool m_downloading = false;
@@ -75,6 +79,7 @@ namespace EarthquakeTalker
             m_leftSample = 0;
 
             m_latestDownloadTime = DateTime.UtcNow;
+            m_latestCheckTime = DateTime.UtcNow;
 
             m_prevSeedFile = string.Empty;
             m_downloading = false;
@@ -102,7 +107,7 @@ namespace EarthquakeTalker
 
             try
             {
-                if (m_downloading == false)
+                if (m_downloading == false && DateTime.UtcNow - m_latestCheckTime >= CheckInterval)
                 {
                     if (string.IsNullOrEmpty(m_prevSeedFile) == false)
                     {
@@ -119,12 +124,23 @@ namespace EarthquakeTalker
                         m_prevSeedFile = string.Empty;
                     }
 
-                    
+
                     var targetTime = m_latestDownloadTime + DownloadInterval;
 
                     if (DateTime.UtcNow >= targetTime)
                     {
                         m_downloading = true;
+
+
+                        // 현재 시각과 차이가 너무 벌어지면 이전 데이터를 포기하고 다시 조정함.
+                        if (DateTime.UtcNow - targetTime > TimeSpan.FromSeconds(60.0))
+                        {
+                            Console.Write('!');
+
+
+                            m_latestDownloadTime = DateTime.UtcNow - TimeSpan.FromSeconds(60.0);
+                            targetTime = m_latestDownloadTime + DownloadInterval;
+                        }
 
                         string startTime = m_latestDownloadTime.ToString("s");
                         string endTime = targetTime.ToString("s");
@@ -148,6 +164,8 @@ namespace EarthquakeTalker
                             {
                                 Console.WriteLine(exp.Message);
                                 Console.WriteLine(exp.StackTrace);
+
+                                Thread.Sleep(2000);
                             }
 
 
@@ -163,6 +181,9 @@ namespace EarthquakeTalker
                             m_downloading = false;
                         });
                     }
+
+
+                    m_latestCheckTime = DateTime.UtcNow;
                 }
             }
             catch (Exception exp)
