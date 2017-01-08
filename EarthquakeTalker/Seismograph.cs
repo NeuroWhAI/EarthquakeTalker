@@ -194,7 +194,7 @@ namespace EarthquakeTalker
 
         protected void ReserveChunk(string location, int sampleCount, int samplingRate, string time)
         {
-            Console.Write('~');
+            Console.Write(this.Index);
 
 
             lock (m_lockSampleCount)

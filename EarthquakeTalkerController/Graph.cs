@@ -45,6 +45,8 @@ namespace EarthquakeTalkerController
         public string SavePath
         { get; set; } = string.Empty;
 
+        private DateTime m_latestDataTime = DateTime.Now;
+
         //##############################################################################################
 
         public void PushData(int data)
@@ -72,6 +74,9 @@ namespace EarthquakeTalkerController
             {
                 m_tempMax = data;
             }
+
+
+            m_latestDataTime = DateTime.Now;
         }
 
         public void Clear()
@@ -128,7 +133,7 @@ namespace EarthquakeTalkerController
             HeightScale = size.Height / 2 * 0.9 / Math.Max(maxData / Gain, DangerPga / 4);
 
 
-            g.DrawString(Name, SystemFonts.DefaultFont, Brushes.Black,
+            g.DrawString(Name + "    " + m_latestDataTime.ToString("s"), SystemFonts.DefaultFont, Brushes.Black,
                 2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
             g.DrawString("Scale: " + HeightScale, SystemFonts.DefaultFont, Brushes.Black, 258, 2);
