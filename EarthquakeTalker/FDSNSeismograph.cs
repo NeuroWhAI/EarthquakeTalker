@@ -39,9 +39,8 @@ namespace EarthquakeTalker
         { get; set; } = TimeSpan.FromSeconds(8.0);
 
         public TimeSpan CheckInterval
-        { get; set; } = TimeSpan.FromSeconds(4.0);
-
-        private string m_prevSeedFile = string.Empty;
+        { get; set; } = TimeSpan.FromSeconds(5.0);
+        
         private bool m_downloading = false;
 
         //###########################################################################################################
@@ -80,8 +79,7 @@ namespace EarthquakeTalker
 
             m_latestDownloadTime = DateTime.UtcNow;
             m_latestCheckTime = DateTime.UtcNow;
-
-            m_prevSeedFile = string.Empty;
+            
             m_downloading = false;
         }
 
@@ -109,22 +107,6 @@ namespace EarthquakeTalker
             {
                 if (m_downloading == false && DateTime.UtcNow - m_latestCheckTime >= CheckInterval)
                 {
-                    if (string.IsNullOrEmpty(m_prevSeedFile) == false)
-                    {
-                        try
-                        {
-                            File.Delete(m_prevSeedFile);
-                        }
-                        catch (Exception exp)
-                        {
-                            Console.WriteLine(exp.Message);
-                            Console.WriteLine(exp.StackTrace);
-                        }
-
-                        m_prevSeedFile = string.Empty;
-                    }
-
-
                     var targetTime = m_latestDownloadTime + DownloadInterval;
 
                     if (DateTime.UtcNow >= targetTime)
@@ -150,7 +132,6 @@ namespace EarthquakeTalker
                         Task.Factory.StartNew(() =>
                         {
                             string seedFile = Path.GetTempFileName() + ".mseed";
-                            m_prevSeedFile = seedFile;
 
 
                             var wc = new WebClient();
@@ -175,6 +156,17 @@ namespace EarthquakeTalker
                                 m_latestDownloadTime = targetTime;
 
                                 StartProcess(seedFile);
+                            }
+
+
+                            try
+                            {
+                                File.Delete(seedFile);
+                            }
+                            catch (Exception exp)
+                            {
+                                Console.WriteLine(exp.Message);
+                                Console.WriteLine(exp.StackTrace);
                             }
 
 

@@ -197,10 +197,13 @@ namespace EarthquakeTalker
             Console.Write(this.Index);
 
 
-            lock (m_lockSampleCount)
+            if (sampleCount > 1)
             {
-                // 얻을 샘플 개수인데 첫번째 데이터는 버리므로 1을 뺌.
-                m_sampleCountList.Enqueue(sampleCount - 1);
+                lock (m_lockSampleCount)
+                {
+                    // 얻을 샘플 개수인데 첫번째 데이터는 버리므로 1을 뺌.
+                    m_sampleCountList.Enqueue(sampleCount - 1);
+                }
             }
 
             m_prevRawData = null;
