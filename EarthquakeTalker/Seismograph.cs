@@ -192,7 +192,7 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        protected void ReserveChunk(string location, int sampleCount, int samplingRate, string time)
+        protected void ReserveChunk(string location, int sampleCount, double samplingRate, string time)
         {
             Console.Write(this.Index);
 

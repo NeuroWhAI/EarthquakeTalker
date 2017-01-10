@@ -198,20 +198,20 @@ namespace EarthquakeTalker
 
             if (m_leftSample <= 0)
             {
-                Regex rgx = new Regex(@"([^\s]+),\s?([^,]+),\s?([^,]+),\s?([^,]+),\s?(\d+)\s?samples,\s?(\d+)\s?Hz,\s?([^\s]+)\s?");
+                Regex rgx = new Regex(@"([^\s]+),\s?([^,]+),\s?([^,]+),\s?([^,]+),\s?(\d+)\s?samples,\s?(\d+\.?\d*)\s?Hz,\s?([^\s]+)\s?");
                 var m = rgx.Match(buf);
                 if (m.Success)
                 {
-                    //Console.WriteLine("Location: " + m.Groups[1]);
-                    //Console.WriteLine("Samples: " + m.Groups[5]);
-                    //Console.WriteLine("Hz: " + m.Groups[6]);
-                    //Console.WriteLine("Time: " + m.Groups[7]);
+                    //Console.WriteLine("Location: " + m.Groups[1]); // string
+                    //Console.WriteLine("Samples: " + m.Groups[5]); // int
+                    //Console.WriteLine("Hz: " + m.Groups[6]); // double
+                    //Console.WriteLine("Time: " + m.Groups[7]); // string
 
 
                     m_leftSample = int.Parse(m.Groups[5].ToString());
                     
-                    int rate = 0;
-                    int.TryParse(m.Groups[6].ToString(), out rate);
+                    double rate = 0;
+                    double.TryParse(m.Groups[6].ToString(), out rate);
 
                     ReserveChunk(m.Groups[1].ToString(), m_leftSample, rate, m.Groups[7].ToString());
 
