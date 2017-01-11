@@ -40,7 +40,8 @@ namespace EarthquakeTalker
 
         public TimeSpan CheckInterval
         { get; set; } = TimeSpan.FromSeconds(5.0);
-        
+
+        private string m_tempSeedFile = Path.GetTempFileName();
         private bool m_downloading = false;
 
         //###########################################################################################################
@@ -129,13 +130,16 @@ namespace EarthquakeTalker
                         string endTime = targetTime.ToString("s");
                         string fileUri = $"http://service.iris.edu/fdsnws/dataselect/1/query?net={Network}&sta={Station}&loc={Location}&cha={Channel}&start={startTime}&end={endTime}";
 
-
                         Task.Factory.StartNew(() =>
                         {
-                            string seedFile = Path.GetTempFileName() + ".mseed";
-
                             try
                             {
+                                if (File.Exists(m_tempSeedFile))
+                                {
+                                    File.Delete(m_tempSeedFile);
+                                }
+
+
                                 var wc = new WebClient();
                                 wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
@@ -143,7 +147,7 @@ namespace EarthquakeTalker
                                 try
                                 {
                                     // MiniSeed 다운로드
-                                    wc.DownloadFile(fileUri, seedFile);
+                                    wc.DownloadFile(fileUri, m_tempSeedFile);
                                 }
                                 catch (Exception exp)
                                 {
@@ -152,15 +156,17 @@ namespace EarthquakeTalker
 
                                     Thread.Sleep(2000);
                                 }
+                                
 
-
-                                var seedFileInfo = new FileInfo(seedFile);
+                                var seedFileInfo = new FileInfo(m_tempSeedFile);
                                 if (seedFileInfo.Exists && seedFileInfo.Length > 0)
                                 {
                                     m_latestDownloadTime = targetTime;
 
                                     // MiniSeed 해석
-                                    StartProcess(seedFile);
+                                    StartProcess(m_tempSeedFile);
+
+                                    seedFileInfo.Delete();
                                 }
                             }
                             catch (Exception exp)
@@ -170,16 +176,6 @@ namespace EarthquakeTalker
                             }
                             finally
                             {
-                                try
-                                {
-                                    File.Delete(seedFile);
-                                }
-                                catch (Exception exp)
-                                {
-                                    Console.WriteLine(exp.Message);
-                                    Console.WriteLine(exp.StackTrace);
-                                }
-
                                 m_downloading = false;
                             }
                         });
