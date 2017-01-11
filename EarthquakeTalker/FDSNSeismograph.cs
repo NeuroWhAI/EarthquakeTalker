@@ -44,8 +44,6 @@ namespace EarthquakeTalker
         private string m_tempSeedFile = Path.GetTempFileName();
         private bool m_downloading = false;
 
-        private readonly object m_lockDataReceiver = new object();
-
         //###########################################################################################################
 
         protected void StartProcess(string seedDataFile)
@@ -74,6 +72,9 @@ namespace EarthquakeTalker
 
                 proc.WaitForExit();
             }
+
+
+            Thread.Sleep(500);
         }
 
         protected void StopProcess()
@@ -217,9 +218,6 @@ namespace EarthquakeTalker
                 var m = rgx.Match(buf);
                 if (m.Success)
                 {
-                    Monitor.TryEnter(m_lockDataReceiver);
-
-
                     //Console.WriteLine("Location: " + m.Groups[1]); // string
                     //Console.WriteLine("Samples: " + m.Groups[5]); // int
                     //Console.WriteLine("Hz: " + m.Groups[6]); // double
@@ -270,12 +268,6 @@ namespace EarthquakeTalker
                 if (beginIndex >= 0)
                 {
                     m_buffer.Remove(beginIndex, endIndex - beginIndex);
-                }
-
-
-                if (m_leftSample <= 0)
-                {
-                    Monitor.Pulse(m_lockDataReceiver);
                 }
             }
         }
