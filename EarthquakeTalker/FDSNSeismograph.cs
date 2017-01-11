@@ -59,16 +59,17 @@ namespace EarthquakeTalker
                 };
 
 
-                proc.Start();
-
+                proc.OutputDataReceived += OutputDataReceived;
 
                 m_buffer.Clear();
 
-                while (!proc.StandardOutput.EndOfStream)
-                {
-                    var outputLine = proc.StandardOutput.ReadLine();
-                    OutputDataReceived(outputLine);
-                }
+
+                proc.Start();
+
+                proc.BeginOutputReadLine();
+
+
+                proc.WaitForExit();
             }
         }
 
@@ -133,44 +134,54 @@ namespace EarthquakeTalker
                         {
                             string seedFile = Path.GetTempFileName() + ".mseed";
 
-
-                            var wc = new WebClient();
-                            wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-
                             try
                             {
-                                wc.DownloadFile(fileUri, seedFile);
+                                var wc = new WebClient();
+                                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+
+                                try
+                                {
+                                    // MiniSeed 다운로드
+                                    wc.DownloadFile(fileUri, seedFile);
+                                }
+                                catch (Exception exp)
+                                {
+                                    Console.WriteLine(exp.Message);
+                                    Console.WriteLine(exp.StackTrace);
+
+                                    Thread.Sleep(2000);
+                                }
+
+
+                                var seedFileInfo = new FileInfo(seedFile);
+                                if (seedFileInfo.Exists && seedFileInfo.Length > 0)
+                                {
+                                    m_latestDownloadTime = targetTime;
+
+                                    // MiniSeed 해석
+                                    StartProcess(seedFile);
+                                }
                             }
                             catch (Exception exp)
                             {
                                 Console.WriteLine(exp.Message);
                                 Console.WriteLine(exp.StackTrace);
-
-                                Thread.Sleep(2000);
                             }
-
-
-                            var seedFileInfo = new FileInfo(seedFile);
-                            if (seedFileInfo.Exists && seedFileInfo.Length > 0)
+                            finally
                             {
-                                m_latestDownloadTime = targetTime;
+                                try
+                                {
+                                    File.Delete(seedFile);
+                                }
+                                catch (Exception exp)
+                                {
+                                    Console.WriteLine(exp.Message);
+                                    Console.WriteLine(exp.StackTrace);
+                                }
 
-                                StartProcess(seedFile);
+                                m_downloading = false;
                             }
-
-
-                            try
-                            {
-                                File.Delete(seedFile);
-                            }
-                            catch (Exception exp)
-                            {
-                                Console.WriteLine(exp.Message);
-                                Console.WriteLine(exp.StackTrace);
-                            }
-
-
-                            m_downloading = false;
                         });
                     }
 
@@ -180,6 +191,9 @@ namespace EarthquakeTalker
             }
             catch (Exception exp)
             {
+                m_downloading = false;
+
+
                 Console.WriteLine(exp.Message);
                 Console.WriteLine(exp.StackTrace);
             }
@@ -190,8 +204,11 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        private void OutputDataReceived(string outputLine)
+        private void OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
+            string outputLine = e.Data;
+
+
             m_buffer.Append(outputLine);
             string buf = m_buffer.ToString();
 
