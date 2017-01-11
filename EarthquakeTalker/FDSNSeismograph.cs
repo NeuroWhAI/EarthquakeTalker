@@ -60,14 +60,16 @@ namespace EarthquakeTalker
                 };
 
 
-                proc.OutputDataReceived += OutputDataReceived;
+                proc.Start();
+
 
                 m_buffer.Clear();
 
-
-                proc.Start();
-
-                proc.BeginOutputReadLine();
+                while (!proc.StandardOutput.EndOfStream)
+                {
+                    var outputLine = proc.StandardOutput.ReadLine();
+                    OutputDataReceived(outputLine);
+                }
 
 
                 proc.WaitForExit();
@@ -203,11 +205,8 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        private void OutputDataReceived(object sender, DataReceivedEventArgs e)
+        private void OutputDataReceived(string outputLine)
         {
-            string outputLine = e.Data;
-
-
             m_buffer.Append(outputLine);
             string buf = m_buffer.ToString();
 
