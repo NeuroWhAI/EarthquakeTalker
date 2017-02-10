@@ -37,7 +37,10 @@ namespace EarthquakeTalker
         { get; set; }
 
         public double DangerPga
-        { get; set; } = 0.0028;
+        { get; set; } = 0.0016;
+
+        private double TriggerPga
+        { get; set; } = 0.0016;
 
         public string Name
         { get; set; }
@@ -65,6 +68,8 @@ namespace EarthquakeTalker
 
         protected override void AfterStop(MultipleTalker talker)
         {
+            TriggerPga = DangerPga;
+
             m_samples.Clear();
 
             m_sampleCountList.Clear();
@@ -146,36 +151,38 @@ namespace EarthquakeTalker
                         /// Max PGA
                         double pga = maxData / Gain;
 
-                        if (pga > DangerPga / 2)
+                        if (pga <= DangerPga)
                         {
-                            m_logger.PushLog(Name + " PGA : " + pga);
+                            TriggerPga = DangerPga;
+                        }
+
+                        // PGA가 위험 수치를 넘어서면
+                        if (pga > TriggerPga)
+                        {
+                            int mmi = Earthquake.ConvertToMMI(pga);
 
 
-                            // PGA가 위험 수치를 넘어서면
-                            if (pga > DangerPga)
+                            var msg = new Message()
                             {
-                                int mmi = Earthquake.ConvertToMMI(pga);
-
-
-                                var msg = new Message()
-                                {
-                                    Level = Message.Priority.Critical,
-                                    Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} 지진계에서 진동 감지됨.
+                                Level = Message.Priority.Critical,
+                                Sender = Channel + " " + Network + "_" + Station + " Station",
+                                Text = $@"{Name} 지진계에서 진동 감지됨.
 수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
 진원지 : 알 수 없음.
 오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
-                                };
+                            };
 
 
-                                m_logger.PushLog(msg);
+                            TriggerPga = pga;
 
 
-                                return msg;
-                            }
+                            m_logger.PushLog(msg);
+
+
+                            return msg;
                         }
                     }
                 }

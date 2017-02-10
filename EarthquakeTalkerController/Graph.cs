@@ -36,7 +36,7 @@ namespace EarthquakeTalkerController
         { get; set; } = 3072;
 
         public double DangerPga
-        { get; set; } = 0.0028;
+        { get; set; } = 0.0016;
 
         protected int m_tempMax = 0;
 
