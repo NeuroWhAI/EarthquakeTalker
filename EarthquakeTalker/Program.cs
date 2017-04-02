@@ -70,22 +70,32 @@ namespace EarthquakeTalker
 
             /// GUI 표준 입력 동기화 객체
             object lockControllerInput = new object();
+#if DEBUG
+            bool needController = File.Exists("../../../EarthquakeTalkerController/bin/Debug/EarthquakeTalkerController.exe");
+#else
+            bool needController = File.Exists("EarthquakeTalkerController.exe");
+#endif
 
             /// GUI
-            Process controller = new Process();
-            controller.StartInfo = new ProcessStartInfo()
-            {
-#if DEBUG
-                FileName = "../../../EarthquakeTalkerController/bin/Debug/EarthquakeTalkerController.exe",
-#else
-                FileName = "EarthquakeTalkerController.exe",
-#endif
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-            };
+            Process controller = null;
 
-            controller.Start();
+            if (needController)
+            {
+                controller = new Process();
+                controller.StartInfo = new ProcessStartInfo()
+                {
+#if DEBUG
+                    FileName = "../../../EarthquakeTalkerController/bin/Debug/EarthquakeTalkerController.exe",
+#else
+                    FileName = "EarthquakeTalkerController.exe",
+#endif
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                };
+
+                controller.Start();
+            }
 
 
             /// 로거
@@ -102,13 +112,13 @@ namespace EarthquakeTalker
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천")
-            { DangerPga = 0.0016, });
+            { DangerPga = 0.0013, });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "JP", "JTU", 1.000000e+09 / 100, "대마도")
             { DangerPga = 0.0026, });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
-            { DangerPga = 0.0016, });
+            { DangerPga = 0.0013, });
             seismographList.Add(new FDSNSeismograph("mseedviewer.exe", "--", "BHZ", "KS", "BUS2", 6.289740e+08 / 100, "부산")
-            { DangerPga = 0.0016, });
+            { DangerPga = 0.0013, });
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
@@ -125,19 +135,22 @@ namespace EarthquakeTalker
                 sensor.Index = sensorIndex;
 
                 // GUI에 지진계 정보 전달
-                controller.StandardInput.WriteLine(sensor.Name + "|" + sensor.Gain + "|" + sensor.DangerPga);
-
-                sensor.WhenDataReceived += new Seismograph.SeismographDataReceivedEventHandler((index, waveform) =>
+                if (controller != null)
                 {
-                    lock (lockControllerInput)
+                    controller.StandardInput.WriteLine(sensor.Name + "|" + sensor.Gain + "|" + sensor.DangerPga);
+
+                    sensor.WhenDataReceived += new Seismograph.SeismographDataReceivedEventHandler((index, waveform) =>
                     {
-                        foreach (int data in waveform)
+                        lock (lockControllerInput)
                         {
-                            if (controller.HasExited == false)
-                                controller.StandardInput.WriteLine(index + "|" + data);
+                            foreach (int data in waveform)
+                            {
+                                if (controller.HasExited == false)
+                                    controller.StandardInput.WriteLine(index + "|" + data);
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 ++sensorIndex;
             }
@@ -181,7 +194,7 @@ namespace EarthquakeTalker
             inputTask.Wait();
 
 
-            if (controller.HasExited == false)
+            if (controller != null && controller.HasExited == false)
                 controller.WaitForExit();
 
             foreach (var worker in workerList)

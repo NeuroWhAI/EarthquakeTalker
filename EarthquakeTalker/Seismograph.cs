@@ -142,10 +142,13 @@ namespace EarthquakeTalker
 
 
                         // 비동기로 데이터 수신 이벤트 발생.
-                        Task.Factory.StartNew(delegate ()
+                        if (WhenDataReceived != null)
                         {
-                            WhenDataReceived(this.Index, subSamples);
-                        });
+                            Task.Factory.StartNew(delegate ()
+                            {
+                                WhenDataReceived(this.Index, subSamples);
+                            });
+                        }
 
 
                         /// Max PGA
