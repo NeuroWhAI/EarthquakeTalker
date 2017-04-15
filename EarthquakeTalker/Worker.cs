@@ -61,7 +61,7 @@ namespace EarthquakeTalker
         {
             while (m_onRunning)
             {
-                Message msg = OnWork();
+                Message msg = OnWork(m_talker.PushMessage);
 
                 if (msg != null)
                 {
@@ -79,6 +79,6 @@ namespace EarthquakeTalker
 
         protected abstract void AfterStop(MultipleTalker talker);
 
-        protected abstract Message OnWork();
+        protected abstract Message OnWork(Action<Message> sender);
     }
 }

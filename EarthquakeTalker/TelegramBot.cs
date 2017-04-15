@@ -46,7 +46,67 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
+        private string EncodeToJson(string text)
+        {
+            StringBuilder buffer = new StringBuilder(text);
+            buffer.Replace("\\", "\\\\");
+            buffer.Replace("\"", "\\\"");
+            buffer.Replace("\'", "\\\'");
+            buffer.Replace("\n", "\\n");
+            buffer.Replace("\r", "\\r");
+            buffer.Replace("\b", "\\b");
+            buffer.Replace("\t", "\\t");
+            buffer.Replace("\a", "\\a");
+            buffer.Replace("\f", "\\f");
+            buffer.Replace("\v", "\\v");
+
+
+            return buffer.ToString();
+        }
+
         protected override bool Talk(Message message)
+        {
+            /*
+             * HTTP 기반 API : https://core.telegram.org/bots/api
+             */
+
+
+            string[] imageTypes =
+            {
+                ".png", ".jpg", ".bmp", ".jpeg", ".gif", // TODO: More...?
+            };
+
+
+            string apiName = "SendMessage";
+            StringBuilder postData = new StringBuilder();
+
+
+            if (message.Text.TrimStart().StartsWith("http")
+                && imageTypes.Any(imgType => message.Text.TrimEnd().EndsWith(imgType)))
+            {
+                apiName = "SendPhoto";
+
+                postData.Append("\"caption\": \"");
+                postData.Append(EncodeToJson(message.Sender));
+                postData.Append("\", \"photo\": \"");
+                postData.Append(message.Text.Trim());
+                postData.Append("\"");
+            }
+            else
+            {
+                apiName = "SendMessage";
+
+                postData.Append("\"disable_web_page_preview\": true");
+                postData.Append(", \"text\": \"");
+                postData.Append(EncodeToJson(message.ToString()));
+                postData.Append("\"");
+            }
+
+
+            return Send(message.Level, postData.ToString(), apiName);
+        }
+
+        private bool Send(Message.Priority priority, string parameters, string apiName)
         {
             /*
              * HTTP 기반 API : https://core.telegram.org/bots/api
@@ -57,25 +117,10 @@ namespace EarthquakeTalker
             postData.Append("{\"chat_id\": \"@");
             postData.Append(RoomID);
             postData.Append("\", \"disable_notification\": ");
-            postData.Append((message.Level < Message.Priority.High) ? "true" : "false");
-            postData.Append(", \"disable_web_page_preview\": true");
-            postData.Append(", \"text\": \"");
-
-            StringBuilder bodyData = new StringBuilder(message.ToString());
-            bodyData.Replace("\\", "\\\\");
-            bodyData.Replace("\"", "\\\"");
-            bodyData.Replace("\'", "\\\'");
-            bodyData.Replace("\n", "\\n");
-            bodyData.Replace("\r", "\\r");
-            bodyData.Replace("\b", "\\b");
-            bodyData.Replace("\t", "\\t");
-            bodyData.Replace("\a", "\\a");
-            bodyData.Replace("\f", "\\f");
-            bodyData.Replace("\v", "\\v");
-
-            postData.Append(bodyData.ToString());
-
-            postData.Append("\"}");
+            postData.Append((priority < Message.Priority.High) ? "true" : "false");
+            postData.Append(", ");
+            postData.Append(parameters);
+            postData.Append("}");
             byte[] byteArray = Encoding.UTF8.GetBytes(postData.ToString());
 
 
@@ -83,7 +128,7 @@ namespace EarthquakeTalker
             {
                 try
                 {
-                    var http = WebRequest.CreateHttp("https://api.telegram.org/" + BotKey + "/SendMessage");
+                    var http = WebRequest.CreateHttp("https://api.telegram.org/" + BotKey + "/" + apiName);
                     http.Method = "POST";
                     http.ContentType = "application/json";
                     http.ContentLength = byteArray.Length;

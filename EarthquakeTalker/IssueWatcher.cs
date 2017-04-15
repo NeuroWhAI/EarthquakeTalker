@@ -76,7 +76,7 @@ namespace EarthquakeTalker
             m_twitterCtx = null;
         }
 
-        protected override Message OnWork()
+        protected override Message OnWork(Action<Message> sender)
         {
             try
             {

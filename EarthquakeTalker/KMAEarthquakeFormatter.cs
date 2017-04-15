@@ -4,13 +4,106 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.Net.Http;
+using System.IO;
 using LinqToTwitter;
 
 namespace EarthquakeTalker
 {
     public class KMAEarthquakeFormatter : ITweetFormatter
     {
-        public Message FormatTweet(Status tweet)
+        private void SendImage(object prm)
+        {
+            var sender = prm as Action<Message>;
+
+
+            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(2));
+
+
+            for (int retry = 0; retry < 32; ++retry)
+            {
+                try
+                {
+                    HttpClient client = new HttpClient();
+
+                    var task = client.GetByteArrayAsync(@"http://www.kma.go.kr/weather/earthquake_volcano/report.jsp");
+
+                    task.Wait();
+
+
+                    var byteArray = task.Result.ToArray();
+                    var encoding = Encoding.GetEncoding(51949/*euc-kr*/);
+                    var html = encoding.GetString(byteArray, 0, byteArray.Length);
+
+                    if (string.IsNullOrWhiteSpace(html) == false)
+                    {
+                        int centerIndex = html.IndexOf("eqk_img");
+
+                        if (centerIndex > 0)
+                        {
+                            int endIndex = html.IndexOf('\"', centerIndex, html.Length - centerIndex);
+
+                            int beginIndex = centerIndex - 1;
+
+                            while (html[beginIndex] != '\"')
+                            {
+                                --beginIndex;
+
+                                if (beginIndex < 0)
+                                    break;
+                            }
+
+                            if (beginIndex >= 0 && endIndex >= 0)
+                            {
+                                string imgUri = "http://www.kma.go.kr" + html.Substring(beginIndex + 1, endIndex - beginIndex - 1);
+
+                                var wc = new WebClient();
+                                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+                                string tempFileName = Path.GetTempFileName();
+                                File.Delete(tempFileName);
+
+                                try
+                                {
+                                    // 파일이 존재하는지 확인.
+                                    wc.DownloadFile(imgUri, tempFileName);
+
+                                    if (File.Exists(tempFileName))
+                                    {
+                                        File.Delete(tempFileName);
+
+                                        sender(new Message()
+                                        {
+                                            Level = Message.Priority.Normal,
+                                            Sender = "기상청 지진 통보문",
+                                            Text = imgUri,
+                                        });
+
+
+                                        return;
+                                    }
+                                }
+                                catch
+                                {
+                                    Console.Write('^');
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception exp)
+                {
+                    Console.WriteLine(exp.Message);
+                    Console.WriteLine(exp.StackTrace);
+                }
+
+
+                System.Threading.Thread.Sleep(8000);
+            }
+        }
+
+        public Message FormatTweet(Status tweet, Action<Message> sender)
         {
             StringBuilder alarmText = new StringBuilder(tweet.Text);
 
@@ -43,6 +136,9 @@ namespace EarthquakeTalker
                         alarmText.Append(Earthquake.GetKnowHowFromMScale(scale));
                     }
                 }
+
+
+                Task.Factory.StartNew(SendImage, sender);
             }
 
 

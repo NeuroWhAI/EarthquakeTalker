@@ -43,7 +43,7 @@ namespace EarthquakeTalker
             m_twitterCtx = null;
         }
 
-        protected override Message OnWork()
+        protected override Message OnWork(Action<Message> sender)
         {
             try
             {
@@ -74,7 +74,7 @@ $");
 
                         if (TweetFormatter != null)
                         {
-                            var msg = TweetFormatter.FormatTweet(firstTweet);
+                            var msg = TweetFormatter.FormatTweet(firstTweet, sender);
 
                             msg.Sender = UserName + " 트위터";
 

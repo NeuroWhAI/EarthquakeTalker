@@ -9,6 +9,6 @@ namespace EarthquakeTalker
 {
     public interface ITweetFormatter
     {
-        Message FormatTweet(Status tweet);
+        Message FormatTweet(Status tweet, Action<Message> sender);
     }
 }

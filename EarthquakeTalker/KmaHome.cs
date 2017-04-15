@@ -35,7 +35,7 @@ namespace EarthquakeTalker
             m_client = null;
         }
 
-        protected override Message OnWork()
+        protected override Message OnWork(Action<Message> sender)
         {
             try
             {

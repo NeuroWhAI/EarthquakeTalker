@@ -78,7 +78,7 @@ namespace EarthquakeTalker
             m_prevProcData = 0;
         }
 
-        protected override Message OnWork()
+        protected override Message OnWork(Action<Message> sender)
         {
             try
             {

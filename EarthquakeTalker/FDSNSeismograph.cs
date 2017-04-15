@@ -105,9 +105,9 @@ namespace EarthquakeTalker
             base.AfterStop(talker);
         }
 
-        protected override Message OnWork()
+        protected override Message OnWork(Action<Message> sender)
         {
-            var msg = base.OnWork();
+            var msg = base.OnWork(sender);
 
 
             try
