@@ -73,10 +73,25 @@ namespace EarthquakeTalker
                                     {
                                         File.Delete(tempFileName);
 
+
+                                        // 진도 얻기.
+                                        string intensity = string.Empty;
+
+                                        centerIndex = html.IndexOf("진도");
+                                        if (centerIndex >= 0)
+                                        {
+                                            beginIndex = html.IndexOf(">", centerIndex + 16) + 1;
+                                            endIndex = html.IndexOf("</", beginIndex);
+
+                                            intensity = html.Substring(beginIndex, endIndex - beginIndex);
+                                        }
+
+
+                                        // 메세지 전송.
                                         sender(new Message()
                                         {
                                             Level = Message.Priority.Normal,
-                                            Sender = "기상청 지진 통보문",
+                                            Sender = (string.IsNullOrEmpty(intensity) ? "기상청 지진 통보문" : intensity),
                                             Text = imgUri,
                                         });
 

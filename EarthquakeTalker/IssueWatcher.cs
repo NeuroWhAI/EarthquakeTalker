@@ -91,7 +91,8 @@ namespace EarthquakeTalker
                          search.IncludeEntities == true &&
                          search.ResultType == ResultType.Recent &&
                          search.SearchLanguage == "ko" &&
-                         search.Count == this.MaxStatusCount * 3
+                         search.Count == this.MaxStatusCount * 3 &&
+                         search.GeoCode == "37.5665350,126.9779690,500km" // 서울에서 반경 500km = 대략 한반도 포함.
                      select search).FirstOrDefault();
 
 

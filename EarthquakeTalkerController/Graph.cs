@@ -124,9 +124,9 @@ namespace EarthquakeTalkerController
 
             foreach (var data in copyWaveform)
             {
-                var adbData = Math.Abs(data);
-                if (adbData > maxData)
-                    maxData = adbData;
+                var absData = Math.Abs(data);
+                if (absData > maxData)
+                    maxData = absData;
             }
 
 
@@ -181,7 +181,19 @@ namespace EarthquakeTalkerController
                 g.Dispose();
                 g = null;
 
-                Directory.CreateDirectory(Path.Combine(SavePath, Name));
+                var folderPath = Path.Combine(SavePath, Name);
+                var folder = new DirectoryInfo(folderPath);
+
+                Directory.CreateDirectory(folderPath);
+
+                // 오래된 이미지 삭제.
+                var imgs = folder.GetFiles();
+                if (imgs.Length > 500)
+                {
+                    var oldestImg = imgs.OrderBy(info => info.CreationTime).First();
+                    File.Delete(oldestImg.FullName);
+                }
+                
 
                 string fileName = Path.Combine(SavePath, Name, DateTime.Now.ToString("yyyy_MM_dd HH_mm_ss") + ".bmp");
                 if (File.Exists(fileName) == false)
