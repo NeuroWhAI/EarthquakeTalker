@@ -36,6 +36,9 @@ namespace EarthquakeTalker
         public string Text
         { get; set; }
 
+        public bool Preview
+        { get; set; } = false;
+
         //##############################################################################
 
         public override string ToString()
@@ -56,6 +59,7 @@ namespace EarthquakeTalker
                 Level = Level,
                 Sender = Sender,
                 Text = Text,
+                Preview = Preview,
             };
         }
     }

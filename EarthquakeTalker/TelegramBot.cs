@@ -96,7 +96,11 @@ namespace EarthquakeTalker
             {
                 apiName = "SendMessage";
 
-                postData.Append("\"disable_web_page_preview\": true");
+                if (message.Preview == false)
+                {
+                    postData.Append("\"disable_web_page_preview\": true");
+                }
+
                 postData.Append(", \"text\": \"");
                 postData.Append(EncodeToJson(message.ToString()));
                 postData.Append("\"");

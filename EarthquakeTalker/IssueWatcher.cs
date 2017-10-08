@@ -107,6 +107,14 @@ namespace EarthquakeTalker
                     });
 
 
+                    if (statuses.Count >= this.MaxStatusCount / 2)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(this.Keyword + " 트윗 " + statuses.Count + "개 감지.");
+                        Console.WriteLine();
+                    }
+
+
                     if (statuses.Count >= this.MaxStatusCount)
                     {
                         var latestStatus = statuses.First();

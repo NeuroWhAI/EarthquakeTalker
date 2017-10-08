@@ -64,10 +64,6 @@ namespace EarthquakeTalker
 
         static void Work()
         {
-            /// 카카오톡 방 제목
-            List<string> kakaoRooms = GetKakaoRoomList("kakao.txt");
-
-
             /// GUI 표준 입력 동기화 객체
             object lockControllerInput = new object();
 #if DEBUG
@@ -104,10 +100,6 @@ namespace EarthquakeTalker
             /// 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
             talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
-            foreach (string room in kakaoRooms)
-            {
-                talker.AddTalker(new KakaoTalker(room, "지진봇알림"));
-            }
 
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
@@ -127,6 +119,7 @@ namespace EarthquakeTalker
             workerList.AddRange(seismographList);
             workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ+-캠",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
+            workerList.Add(new NecisEarlyWarning());
 
             int sensorIndex = 0;
             foreach (var sensor in seismographList)
@@ -201,28 +194,6 @@ namespace EarthquakeTalker
             {
                 worker.Stop();
             }
-        }
-
-        static List<string> GetKakaoRoomList(string fileName)
-        {
-            List<string> kakaoRooms = new List<string>();
-
-            using (StreamReader sr = new StreamReader(new FileStream(fileName, FileMode.Open)))
-            {
-                while (!sr.EndOfStream)
-                {
-                    string room = sr.ReadLine().Trim();
-                    if (string.IsNullOrWhiteSpace(room) == false)
-                    {
-                        kakaoRooms.Add(room);
-                    }
-                }
-
-                sr.Close();
-            }
-
-
-            return kakaoRooms;
         }
     }
 }

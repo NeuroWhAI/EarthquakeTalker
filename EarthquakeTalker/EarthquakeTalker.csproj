@@ -71,11 +71,11 @@
     <Compile Include="FDSNSeismograph.cs" />
     <Compile Include="IssueWatcher.cs" />
     <Compile Include="ITweetFormatter.cs" />
-    <Compile Include="KakaoTalker.cs" />
     <Compile Include="KMAEarthquakeFormatter.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MultipleTalker.cs" />
+    <Compile Include="NecisEarlyWarning.cs" />
     <Compile Include="Seismograph.cs" />
     <Compile Include="SLinkSeismograph.cs" />
     <Compile Include="TelegramBot.cs" />
@@ -85,7 +85,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Talker.cs" />
     <Compile Include="TwitterWorker.cs" />
-    <Compile Include="WinApi.cs" />
     <Compile Include="Worker.cs" />
   </ItemGroup>
   <ItemGroup>
