@@ -55,6 +55,7 @@ namespace EarthquakeTalker
                 uri.Append((korTime - TimeSpan.FromMinutes(1)).ToString("yyyy-MM-dd"));
                 uri.Append("&endDate=");
                 uri.Append(korTime.ToString("yyyy-MM-dd"));
+                uri.Append("&startMagnitude=0.0&endMagnitude=9.9");
 
                 var task = m_client.GetByteArrayAsync(uri.ToString());
 
