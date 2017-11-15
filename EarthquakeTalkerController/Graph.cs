@@ -45,7 +45,7 @@ namespace EarthquakeTalkerController
         public string SavePath
         { get; set; } = string.Empty;
 
-        private DateTime m_latestDataTime = DateTime.Now;
+        private DateTime m_latestDataTime = DateTime.UtcNow;
 
         //##############################################################################################
 
@@ -76,7 +76,7 @@ namespace EarthquakeTalkerController
             }
 
 
-            m_latestDataTime = DateTime.Now;
+            m_latestDataTime = DateTime.UtcNow;
         }
 
         public void Clear()

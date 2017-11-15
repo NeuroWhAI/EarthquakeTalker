@@ -153,7 +153,10 @@ namespace EarthquakeTalker
                 }
 
 
-                Task.Factory.StartNew(SendImage, sender);
+                if (tweet.Text.Contains("추정규모") == false)
+                {
+                    Task.Factory.StartNew(SendImage, sender);
+                }
             }
 
 
