@@ -59,6 +59,8 @@ namespace EarthquakeTalker
                         StringBuilder msgBdr = new StringBuilder(kmaNotiHtml.Substring(begin + 1, end - begin - 1));
                         msgBdr.Replace("<br>", "\n");
                         msgBdr.Replace("<br/>", "\n");
+                        msgBdr.Replace("&#40;", "(");
+                        msgBdr.Replace("&#41;", ")");
                         msgBdr.Replace("&nbsp;", " ");
                         msgBdr.Replace("&lt;", "<");
                         msgBdr.Replace("&gt;", ">");

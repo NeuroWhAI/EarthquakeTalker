@@ -30,15 +30,40 @@ namespace EarthquakeTalker
 
         public void TalkAll()
         {
-            lock (m_lockMsgQueue)
+            var failedMsg = new List<Message>();
+
+
+            int count = m_msgQueue.Count;
+
+            for (int m = 0; m < count; ++m)
             {
-                foreach (var msg in m_msgQueue)
+                Message msg = null;
+
+                lock (m_lockMsgQueue)
                 {
-                    Talk(msg);
+                    msg = m_msgQueue.Dequeue();
                 }
 
 
-                m_msgQueue.Clear();
+                bool result = Talk(msg);
+
+                if (result == false)
+                {
+                    failedMsg.Add(msg);
+                }
+            }
+
+
+            if (failedMsg.Count > 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Failed messages : " + failedMsg.Count);
+                Console.WriteLine();
+            }
+
+            foreach (var msg in failedMsg)
+            {
+                m_msgQueue.Enqueue(msg);
             }
         }
 

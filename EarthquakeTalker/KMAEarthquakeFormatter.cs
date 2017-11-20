@@ -138,24 +138,37 @@ namespace EarthquakeTalker
                 msgLevel = Message.Priority.High;
 
 
-                Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
-                var match = rgx.Match(tweet.Text);
-                if (match.Success)
-                {
-                    double scale = 0.0;
-                    if (double.TryParse(match.Groups[1].ToString(), out scale))
-                    {
-                        alarmText.AppendLine();
-                        alarmText.AppendLine();
+                double scale = 0.0;
 
-                        alarmText.Append(Earthquake.GetKnowHowFromMScale(scale));
+                if (tweet.Text.Contains("추정규모"))
+                {
+                    Regex rgx = new Regex(@"규모\s*:\s*(\d{1,2}\.?\d*)");
+                    var match = rgx.Match(tweet.Text);
+                    if (match.Success)
+                    {
+                       double.TryParse(match.Groups[1].ToString(), out scale);
                     }
+                }
+                else
+                {
+                    Regex rgx = new Regex(@"규모\s?(\d{1,2}\.?\d*)");
+                    var match = rgx.Match(tweet.Text);
+                    if (match.Success)
+                    {
+                        double.TryParse(match.Groups[1].ToString(), out scale);
+                    }
+
+
+                    Task.Factory.StartNew(SendImage, sender);
                 }
 
 
-                if (tweet.Text.Contains("추정규모") == false)
+                if (scale > 0)
                 {
-                    Task.Factory.StartNew(SendImage, sender);
+                    alarmText.AppendLine();
+                    alarmText.AppendLine();
+
+                    alarmText.Append(Earthquake.GetKnowHowFromMScale(scale));
                 }
             }
 

@@ -30,7 +30,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(8.0);
+            this.JobDelay = TimeSpan.FromSeconds(6.0);
 
 
             AuthorizeContext();
