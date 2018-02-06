@@ -27,7 +27,7 @@ namespace EarthquakeTalker
                 {
                     HttpClient client = new HttpClient();
 
-                    var task = client.GetByteArrayAsync(@"http://www.kma.go.kr/weather/earthquake_volcano/report.jsp");
+                    var task = client.GetByteArrayAsync(@"http://www.weather.go.kr/weather/earthquake_volcano/report.jsp");
 
                     task.Wait();
 
@@ -56,7 +56,7 @@ namespace EarthquakeTalker
 
                             if (beginIndex >= 0 && endIndex >= 0)
                             {
-                                string imgUri = "http://www.kma.go.kr" + html.Substring(beginIndex + 1, endIndex - beginIndex - 1);
+                                string imgUri = "http://www.weather.go.kr" + html.Substring(beginIndex + 1, endIndex - beginIndex - 1);
 
                                 var wc = new WebClient();
                                 wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
