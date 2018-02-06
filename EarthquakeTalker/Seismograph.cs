@@ -63,7 +63,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(1.0);
+            this.JobDelay = TimeSpan.FromMilliseconds(600.0);
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -154,7 +154,8 @@ namespace EarthquakeTalker
                         /// Max PGA
                         double pga = maxData / Gain;
 
-                        if (pga <= DangerPga)
+                        // PGA가 안전한 수준으로 떨어지면 위험 수치를 리셋한다.
+                        if (pga < DangerPga / 2)
                         {
                             TriggerPga = DangerPga;
                         }
