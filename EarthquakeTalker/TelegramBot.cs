@@ -84,7 +84,7 @@ namespace EarthquakeTalker
             if (message.Text.TrimStart().StartsWith("http")
                 && imageTypes.Any(imgType => message.Text.TrimEnd().EndsWith(imgType)))
             {
-                apiName = "SendPhoto";
+                apiName = "sendPhoto";
 
                 postData.Append("\"caption\": \"");
                 postData.Append(EncodeToJson(message.Sender));
@@ -94,7 +94,7 @@ namespace EarthquakeTalker
             }
             else
             {
-                apiName = "SendMessage";
+                apiName = "sendMessage";
 
                 if (message.Preview == false)
                 {

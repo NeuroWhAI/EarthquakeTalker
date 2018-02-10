@@ -33,7 +33,12 @@ namespace EarthquakeTalker
             var failedMsg = new List<Message>();
 
 
-            int count = m_msgQueue.Count;
+            int count = 0;
+
+            lock (m_lockMsgQueue)
+            {
+                count = m_msgQueue.Count;
+            }
 
             for (int m = 0; m < count; ++m)
             {
@@ -49,8 +54,24 @@ namespace EarthquakeTalker
 
                 if (result == false)
                 {
-                    failedMsg.Add(msg);
+                    msg.RetryCount += 1;
+
+                    if (msg.RetryCount <= 3)
+                    {
+                        failedMsg.Add(msg);
+                    }
+                    else
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Message lost.");
+                        Console.WriteLine();
+                    }
+
+                    Task.Delay(2000).Wait();
                 }
+
+
+                Task.Delay(100).Wait();
             }
 
 
@@ -63,7 +84,10 @@ namespace EarthquakeTalker
 
             foreach (var msg in failedMsg)
             {
-                m_msgQueue.Enqueue(msg);
+                lock (m_lockMsgQueue)
+                {
+                    m_msgQueue.Enqueue(msg);
+                }
             }
         }
 

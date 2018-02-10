@@ -39,6 +39,9 @@ namespace EarthquakeTalker
         public bool Preview
         { get; set; } = false;
 
+        public int RetryCount
+        { get; set; } = 0;
+
         //##############################################################################
 
         public override string ToString()
@@ -60,6 +63,7 @@ namespace EarthquakeTalker
                 Sender = Sender,
                 Text = Text,
                 Preview = Preview,
+                RetryCount = RetryCount,
             };
         }
     }
