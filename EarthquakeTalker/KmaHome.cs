@@ -39,7 +39,7 @@ namespace EarthquakeTalker
         {
             try
             {
-                var kmaNoti = m_client.GetByteArrayAsync(@"http://www.kma.go.kr/weather/earthquake_volcano/ajaxEqkNoticePopup.jsp");
+                var kmaNoti = m_client.GetByteArrayAsync(@"http://www.weather.go.kr/weather/earthquake_volcano/ajaxEqkNoticePopup.jsp");
 
                 kmaNoti.Wait();
 
