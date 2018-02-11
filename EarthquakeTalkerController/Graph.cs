@@ -159,8 +159,7 @@ namespace EarthquakeTalkerController
 
                 int i = 0;
                 float prevY = 0;
-
-                int winCount = 0;
+                
                 int prevWinMax = 0;
                 int winMax = 0;
                 float prevWinY = 0;
@@ -175,14 +174,10 @@ namespace EarthquakeTalkerController
                     int absData = Math.Abs(data);
                     if (absData > winMax)
                     {
-                        absData = winMax;
+                        winMax = absData;
                     }
 
-                    if (winCount <= MaxPoolingSize)
-                    {
-                        ++winCount;
-                    }
-                    else
+                    if (i >= MaxPoolingSize)
                     {
                         int pop = copyWaveform[i - MaxPoolingSize];
                         if (pop >= winMax)
