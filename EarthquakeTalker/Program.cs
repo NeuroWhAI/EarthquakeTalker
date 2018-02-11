@@ -109,14 +109,14 @@ namespace EarthquakeTalker
             { DangerPga = 0.0026, });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
             { DangerPga = 0.0013, });
-            seismographList.Add(new FDSNSeismograph("mseedviewer.exe", "--", "BHZ", "KS", "BUS2", 6.289740e+08 / 100, "부산")
-            { DangerPga = 0.0013, });
+            seismographList.Add(new WinstonSeismograph("210.180.100.252", 16032, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
+            { DangerPga = 0.006, });
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
+            workerList.AddRange(seismographList);
             workerList.Add(new UserWatcher("KMA_earthquake", new KMAEarthquakeFormatter()));
             workerList.Add(new KmaHome());
-            workerList.AddRange(seismographList);
             workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ+-캠",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
             workerList.Add(new NecisEarlyWarning());
