@@ -171,19 +171,10 @@ namespace EarthquakeTalkerController
                     g.DrawLine(Pens.Blue, (float)((i - 1) * widthScale), prevY + halfHeight,
                         (float)(i * widthScale), y + halfHeight);
 
-                    int absData = Math.Abs(data);
-                    if (absData > winMax)
-                    {
-                        winMax = absData;
-                    }
-
                     if (i >= MaxPoolingSize)
                     {
-                        int pop = copyWaveform[i - MaxPoolingSize];
-                        if (pop >= winMax)
-                        {
-                            winMax = copyWaveform.Skip(i - MaxPoolingSize + 1).Take(MaxPoolingSize).Max();
-                        }
+                        winMax = copyWaveform.Skip(i - MaxPoolingSize + 1).Take(MaxPoolingSize)
+                            .Max((wav) => Math.Abs(wav));
                     }
 
                     float winY = (float)(winMax / Gain * HeightScale);
