@@ -25,7 +25,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(3.0);
+            this.JobDelay = TimeSpan.FromSeconds(6.0);
         }
 
         protected override void AfterStop(MultipleTalker talker)
