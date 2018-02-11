@@ -56,18 +56,7 @@ namespace EarthquakeTalker
                     {
                         int end = kmaNotiHtml.IndexOf("</p>", begin);
 
-                        StringBuilder msgBdr = new StringBuilder(kmaNotiHtml.Substring(begin + 1, end - begin - 1));
-                        msgBdr.Replace("<br>", "\n");
-                        msgBdr.Replace("<br/>", "\n");
-                        msgBdr.Replace("&#40;", "(");
-                        msgBdr.Replace("&#41;", ")");
-                        msgBdr.Replace("&nbsp;", " ");
-                        msgBdr.Replace("&lt;", "<");
-                        msgBdr.Replace("&gt;", ">");
-                        msgBdr.Replace("&amp;", "&");
-                        msgBdr.Replace("&quot;", "\"");
-
-                        string noti = msgBdr.ToString().Trim();
+                        string noti = Util.ConvertHtmlToText(kmaNotiHtml.Substring(begin + 1, end - begin - 1)).Trim();
 
                         if (noti.Contains("지진") || noti.Contains("여진"))
                         {
