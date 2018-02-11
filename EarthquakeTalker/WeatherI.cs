@@ -126,7 +126,7 @@ namespace EarthquakeTalker
                 Console.WriteLine(exp.StackTrace);
 
 
-                Thread.Sleep(4000);
+                Thread.Sleep(8000);
 
                 m_client = new HttpClient();
             }
