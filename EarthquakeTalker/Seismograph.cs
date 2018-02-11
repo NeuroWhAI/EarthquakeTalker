@@ -174,7 +174,7 @@ namespace EarthquakeTalker
 수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
 진원지 : 알 수 없음.
-오류일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
+오류나 생활진동일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
                             };
@@ -203,7 +203,7 @@ namespace EarthquakeTalker
 
         //###########################################################################################################
 
-        protected void ReserveChunk(string location, int sampleCount, double samplingRate, string time)
+        protected void ReserveChunk(int sampleCount, double samplingRate)
         {
             Console.Write(this.Index);
 

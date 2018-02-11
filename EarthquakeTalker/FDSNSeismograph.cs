@@ -228,7 +228,7 @@ namespace EarthquakeTalker
                     double rate = 0;
                     double.TryParse(m.Groups[6].ToString(), out rate);
 
-                    ReserveChunk(m.Groups[1].ToString(), m_leftSample, rate, m.Groups[7].ToString());
+                    ReserveChunk(m_leftSample, rate);
 
 
                     m_buffer.Remove(m.Index, m.Length);
