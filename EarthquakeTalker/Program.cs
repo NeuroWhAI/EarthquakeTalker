@@ -64,6 +64,26 @@ namespace EarthquakeTalker
 
         static void Work()
         {
+            string winstonIp = string.Empty;
+            int winstonPort = -1;
+
+            // Winston 지진계 정보 불러오기
+            try
+            {
+                using (var sr = new StreamReader(new FileStream("winston.txt", FileMode.Open)))
+                {
+                    winstonIp = sr.ReadLine();
+                    string temp = sr.ReadLine();
+                    int.TryParse(temp, out winstonPort);
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("winston.txt 파일을 찾을 수 없습니다.");
+                return;
+            }
+
+
             /// GUI 표준 입력 동기화 객체
             object lockControllerInput = new object();
 #if DEBUG
@@ -109,7 +129,7 @@ namespace EarthquakeTalker
             { DangerPga = 0.0026, });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
             { DangerPga = 0.0013, });
-            seismographList.Add(new WinstonSeismograph("210.180.100.252", 16032, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
+            seismographList.Add(new WinstonSeismograph(winstonIp, winstonPort, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
             { DangerPga = 0.006, });
 
             /// 지진계를 포함한 메세지 생성자
