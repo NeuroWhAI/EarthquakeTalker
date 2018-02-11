@@ -47,6 +47,9 @@ namespace EarthquakeTalkerController
 
         private DateTime m_latestDataTime = DateTime.UtcNow;
 
+        public int MaxPoolingSize
+        { get; set; } = 10;
+
         //##############################################################################################
 
         public void PushData(int data)
@@ -157,12 +160,46 @@ namespace EarthquakeTalkerController
                 int i = 0;
                 float prevY = 0;
 
+                int winCount = 0;
+                int prevWinMax = 0;
+                int winMax = 0;
+                float prevWinY = 0;
+
                 foreach (var data in copyWaveform)
                 {
                     float y = (float)(data / Gain * HeightScale);
 
                     g.DrawLine(Pens.Blue, (float)((i - 1) * widthScale), prevY + halfHeight,
                         (float)(i * widthScale), y + halfHeight);
+
+                    int absData = Math.Abs(data);
+                    if (absData > winMax)
+                    {
+                        absData = winMax;
+                    }
+
+                    if (winCount <= MaxPoolingSize)
+                    {
+                        ++winCount;
+                    }
+                    else
+                    {
+                        int pop = copyWaveform[i - MaxPoolingSize];
+                        if (pop >= winMax)
+                        {
+                            winMax = copyWaveform.Skip(i - MaxPoolingSize + 1).Take(MaxPoolingSize).Max();
+                        }
+                    }
+
+                    float winY = (float)(winMax / Gain * HeightScale);
+
+                    g.DrawLine(Pens.Green, (float)((i - 1) * widthScale), halfHeight - prevWinY,
+                        (float)(i * widthScale), halfHeight - winY);
+                    g.DrawLine(Pens.Green, (float)((i - 1) * widthScale), prevWinY + halfHeight,
+                        (float)(i * widthScale), winY + halfHeight);
+
+                    prevWinMax = winMax;
+                    prevWinY = winY;
 
                     prevY = y;
                     ++i;
