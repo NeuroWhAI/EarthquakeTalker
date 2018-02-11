@@ -85,6 +85,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Talker.cs" />
     <Compile Include="TwitterWorker.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="WeatherI.cs" />
     <Compile Include="Worker.cs" />
   </ItemGroup>
   <ItemGroup>
