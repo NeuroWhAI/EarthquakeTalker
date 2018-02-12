@@ -42,6 +42,9 @@ namespace EarthquakeTalker
         private double TriggerPga
         { get; set; } = 0.0016;
 
+        private double NormalPga
+        { get; set; } = 0.0016;
+
         public string Name
         { get; set; }
 
@@ -58,6 +61,17 @@ namespace EarthquakeTalker
         { get; set; } = -1;
         public delegate void SeismographDataReceivedEventHandler(int index, List<double> waveform);
         public event SeismographDataReceivedEventHandler WhenDataReceived = null;
+
+        private int SamplingRate
+        { get; set; } = 0;
+
+        private bool m_eqOccurred = false;
+        private int m_waveLength = 0;
+        private List<double> m_waveBuffer = new List<double>();
+        private int WindowSize
+        { get; set; } = 10;
+
+        private Queue<Message> m_msgQueue = new Queue<Message>();
 
         //###########################################################################################################
 
@@ -116,7 +130,8 @@ namespace EarthquakeTalker
 
 
                         /// Max Raw Data
-                        double maxData = 0;
+                        double maxData = -1;
+                        int maxDataIndex = -1;
 
                         /// 청크 샘플
                         List<double> subSamples = null;
@@ -128,11 +143,17 @@ namespace EarthquakeTalker
 
 
                             // 최댓값을 찾음.
+                            int index = 0;
                             foreach (double data in subSamples)
                             {
                                 double absData = Math.Abs(data);
                                 if (absData > maxData)
+                                {
                                     maxData = absData;
+                                    maxDataIndex = index;
+                                }
+
+                                ++index;
                             }
 
 
@@ -154,17 +175,10 @@ namespace EarthquakeTalker
                         /// Max PGA
                         double pga = maxData / Gain;
 
-                        // PGA가 안전한 수준으로 떨어지면 위험 수치를 리셋한다.
-                        if (pga < DangerPga / 2)
-                        {
-                            TriggerPga = DangerPga;
-                        }
-
                         // PGA가 위험 수치를 넘어서면
                         if (pga > TriggerPga)
                         {
                             int mmi = Earthquake.ConvertToMMI(pga);
-
 
                             var msg = new Message()
                             {
@@ -179,14 +193,124 @@ namespace EarthquakeTalker
 {Earthquake.GetKnowHowFromMMI(mmi)}",
                             };
 
+                            m_msgQueue.Enqueue(msg);
+
+
+                            // 시간 측정 시작
+
+                            if (m_eqOccurred)
+                            {
+                                m_waveBuffer.AddRange(subSamples);
+                            }
+                            else
+                            {
+                                m_eqOccurred = true;
+                                m_waveLength = 1;
+                                m_waveBuffer.Clear();
+                                m_waveBuffer.AddRange(subSamples.Skip(maxDataIndex + 1));
+                            }
+
 
                             TriggerPga = pga;
+                        }
+                        else if (m_eqOccurred)
+                        {
+                            m_waveBuffer.AddRange(subSamples);
+                        }
 
 
-                            m_logger.PushLog(msg);
+                        if (m_eqOccurred)
+                        {
+                            int checkedCount = 0;
+                            for (int i = 0; i < m_waveBuffer.Count - WindowSize; ++i)
+                            {
+                                ++checkedCount;
+
+                                double max = m_waveBuffer.Skip(i).Take(WindowSize)
+                                    .Max((wav) => Math.Abs(wav));
+                                double poolingPga = max / Gain;
+
+                                // 안정화 됬으면
+                                if (poolingPga < NormalPga)
+                                {
+                                    m_eqOccurred = false;
+
+                                    break;
+                                }
+                                else if (poolingPga > TriggerPga)
+                                {
+                                    // 또 트리거 되면
+
+                                    if (SamplingRate > 0)
+                                    {
+                                        var msg = new Message()
+                                        {
+                                            Level = Message.Priority.Normal,
+                                            Sender = Channel + " " + Network + "_" + Station + " Station",
+                                            Text = $@"{Name} 지진계의 진동에 관한 추가 정보. (시험 운영)
+(추가적인 진동이 발생하여 조기 송출됨)
+지속시간 : 약 {string.Format("{0:F3}", (double)m_waveLength / SamplingRate)}초
+지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
+                                        };
+
+                                        m_msgQueue.Enqueue(msg);
+                                    }
+
+                                    TriggerPga = poolingPga;
+
+                                    m_waveLength = 1;
+
+                                    break;
+                                }
+
+                                ++m_waveLength;
+                            }
 
 
-                            return msg;
+                            if (m_waveBuffer.Count >= checkedCount)
+                            {
+                                m_waveBuffer.RemoveRange(0, checkedCount);
+                            }
+
+
+                            if (m_eqOccurred == false)
+                            {
+                                TriggerPga = DangerPga;
+
+
+                                if (SamplingRate > 0)
+                                {
+                                    var msg = new Message()
+                                    {
+                                        Level = Message.Priority.Normal,
+                                        Sender = Channel + " " + Network + "_" + Station + " Station",
+                                        Text = $@"{Name} 지진계의 진동에 관한 추가 정보. (시험 운영)
+지속시간 : 약 {string.Format("{0:F3}", (double)m_waveLength / SamplingRate)}초
+지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
+                                    };
+
+                                    m_msgQueue.Enqueue(msg);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // 평소 PGA 계산
+                            NormalPga = subSamples
+                                .Select((wav) => Math.Abs(wav) / Gain)
+                                .Max();
+                            NormalPga *= 2;
+
+                            NormalPga = Math.Max(NormalPga, 0.0016);
+                        }
+
+
+                        if (m_msgQueue.Count > 0)
+                        {
+                            m_logger.PushLog(m_msgQueue.Peek());
+
+
+                            return m_msgQueue.Dequeue();
                         }
                     }
                 }
@@ -206,6 +330,12 @@ namespace EarthquakeTalker
         protected void ReserveChunk(int sampleCount, double samplingRate)
         {
             Console.Write(this.Index);
+
+
+            if ((int)samplingRate > 0)
+            {
+                this.SamplingRate = (int)samplingRate;
+            }
 
 
             if (sampleCount > 1)
