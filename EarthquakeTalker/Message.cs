@@ -20,12 +20,16 @@ namespace EarthquakeTalker
         
         public Message(string text = "", string sender = "", Priority level = Priority.Normal)
         {
+            CreationTime = DateTime.UtcNow.AddHours(9);
             Level = level;
             Sender = sender;
             Text = text;
         }
 
         //##############################################################################
+
+        public DateTime CreationTime
+        { get; set; }
 
         public Priority Level
         { get; set; }
@@ -47,6 +51,7 @@ namespace EarthquakeTalker
         public override string ToString()
         {
             StringBuilder str = new StringBuilder();
+            str.AppendLine(CreationTime.ToLongTimeString());
             str.AppendLine("<< " + Sender + " >>");
             str.AppendLine("## " + Level.ToString() + " Level ##");
             str.Append(Text);
@@ -59,6 +64,7 @@ namespace EarthquakeTalker
         {
             return new Message()
             {
+                CreationTime = CreationTime,
                 Level = Level,
                 Sender = Sender,
                 Text = Text,
