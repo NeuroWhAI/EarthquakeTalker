@@ -130,7 +130,7 @@ namespace EarthquakeTalker
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
             { DangerPga = 0.0013, });
             seismographList.Add(new WinstonSeismograph(winstonIp, winstonPort, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
-            { DangerPga = 0.006, });
+            { DangerPga = 0.006, Endian = true });
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();

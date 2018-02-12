@@ -24,6 +24,9 @@ namespace EarthquakeTalker
         public string Location
         { get; set; } = "--";
 
+        public bool Endian
+        { get; set; } = false;
+
         private readonly string m_ip;
         private readonly int m_port;
 
@@ -158,9 +161,14 @@ namespace EarthquakeTalker
             client.Close();
         }
 
-        private static byte[] ReverseBytes(byte[] bytes, int offset, int size)
+        private byte[] ReverseBytes(byte[] bytes, int offset, int size)
         {
-            return bytes.Skip(offset).Take(size).Reverse().ToArray();
+            if (Endian)
+            {
+                return bytes.Skip(offset).Take(size).Reverse().ToArray();
+            }
+
+            return bytes.Skip(offset).ToArray();
         }
 
         private double ConvertTime(DateTime time)
