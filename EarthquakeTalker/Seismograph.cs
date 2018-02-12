@@ -63,7 +63,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromMilliseconds(600.0);
+            this.JobDelay = TimeSpan.FromMilliseconds(500.0);
         }
 
         protected override void AfterStop(MultipleTalker talker)
