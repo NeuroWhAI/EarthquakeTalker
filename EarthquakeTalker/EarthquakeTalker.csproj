@@ -86,6 +86,7 @@
     <Compile Include="Talker.cs" />
     <Compile Include="TwitterWorker.cs" />
     <Compile Include="Util.cs" />
+    <Compile Include="Wave.cs" />
     <Compile Include="WeatherI.cs" />
     <Compile Include="WinstonSeismograph.cs" />
     <Compile Include="Worker.cs" />

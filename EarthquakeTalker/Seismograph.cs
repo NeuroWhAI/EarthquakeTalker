@@ -64,10 +64,8 @@ namespace EarthquakeTalker
 
         private int SamplingRate
         { get; set; } = 0;
-
-        private bool m_eqOccurred = false;
-        private int m_waveLength = 0;
-        private List<double> m_waveBuffer = new List<double>();
+        
+        private List<Wave> m_waveBuffer = new List<Wave>();
         private int WindowSize
         { get; set; } = 10;
 
@@ -77,7 +75,7 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromMilliseconds(500.0);
+            this.JobDelay = TimeSpan.FromMilliseconds(200.0);
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -196,105 +194,100 @@ namespace EarthquakeTalker
                             m_msgQueue.Enqueue(msg);
 
 
-                            // 시간 측정 시작
-
-                            if (m_eqOccurred)
-                            {
-                                m_waveBuffer.AddRange(subSamples);
-                            }
-                            else
-                            {
-                                m_eqOccurred = true;
-                                m_waveLength = 1;
-                                m_waveBuffer.Clear();
-                                m_waveBuffer.AddRange(subSamples.Skip(maxDataIndex + 1));
-                            }
-
-
                             TriggerPga = pga;
+
+
+                            // 분석 중인 경우
+                            if (m_waveBuffer.Count > 0)
+                            {
+                                // 가장 최근 파형에 트리거 전까지의 데이터 추가
+                                m_waveBuffer.Last().AddWave(subSamples.Take(maxDataIndex));
+                            }
+
+                            // 새 파형 생성
+                            var newWave = new Wave()
+                            {
+                                Length = 0,
+                                MaxPga = pga
+                            };
+                            newWave.AddWave(subSamples.Skip(maxDataIndex));
+
+                            m_waveBuffer.Add(newWave);
                         }
-                        else if (m_eqOccurred)
+                        else if (m_waveBuffer.Count > 0)
                         {
-                            m_waveBuffer.AddRange(subSamples);
+                            m_waveBuffer.Last().AddWave(subSamples);
                         }
 
 
-                        if (m_eqOccurred)
+                        for (int w = 0; w < m_waveBuffer.Count; ++w)
                         {
+                            Wave wave = m_waveBuffer[w];
+
+
+                            int stopIndex = wave.BufferLength - WindowSize;
                             int checkedCount = 0;
-                            for (int i = 0; i < m_waveBuffer.Count - WindowSize; ++i)
+
+                            for (int d = 0; d <= stopIndex; ++d)
                             {
                                 ++checkedCount;
 
-                                double max = m_waveBuffer.Skip(i).Take(WindowSize)
+                                double max = wave.Buffer.Skip(d).Take(WindowSize)
                                     .Max((wav) => Math.Abs(wav));
                                 double poolingPga = max / Gain;
 
-                                // 안정화 됬으면
-                                if (poolingPga < NormalPga)
+                                // 안정화 되었거나 다른 파형이 나왔으면
+                                if (poolingPga < NormalPga || poolingPga > wave.MaxPga)
                                 {
-                                    m_eqOccurred = false;
-
-                                    break;
-                                }
-                                else if (poolingPga > TriggerPga)
-                                {
-                                    // 또 트리거 되면
-
-                                    if (SamplingRate > 0)
-                                    {
-                                        var msg = new Message()
-                                        {
-                                            Level = Message.Priority.Normal,
-                                            Sender = Channel + " " + Network + "_" + Station + " Station",
-                                            Text = $@"{Name} 지진계의 진동에 관한 추가 정보. (시험 운영)
-(추가적인 진동이 발생하여 조기 송출됨)
-지속시간 : 약 {string.Format("{0:F3}", (double)m_waveLength / SamplingRate)}초
-지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
-                                        };
-
-                                        m_msgQueue.Enqueue(msg);
-                                    }
-
-                                    TriggerPga = poolingPga;
-
-                                    m_waveLength = 1;
+                                    // 분석 종료
+                                    checkedCount = wave.BufferLength;
 
                                     break;
                                 }
 
-                                ++m_waveLength;
+                                ++wave.Length;
                             }
 
-
-                            if (m_waveBuffer.Count >= checkedCount)
+                            // 마지막 파형이 아니라면
+                            if (w < m_waveBuffer.Count - 1)
                             {
-                                m_waveBuffer.RemoveRange(0, checkedCount);
+                                // 분석 종료
+                                checkedCount = wave.BufferLength;
                             }
 
+                            // 처리한 데이터 제거
+                            wave.RemoveWave(checkedCount);
 
-                            if (m_eqOccurred == false)
+
+                            // 분석이 종료되었으면
+                            if (wave.BufferLength <= 0 && SamplingRate > 0)
                             {
-                                TriggerPga = DangerPga;
-
-
-                                if (SamplingRate > 0)
+                                var msg = new Message()
                                 {
-                                    var msg = new Message()
-                                    {
-                                        Level = Message.Priority.Normal,
-                                        Sender = Channel + " " + Network + "_" + Station + " Station",
-                                        Text = $@"{Name} 지진계의 진동에 관한 추가 정보. (시험 운영)
-지속시간 : 약 {string.Format("{0:F3}", (double)m_waveLength / SamplingRate)}초
+                                    Level = Message.Priority.High,
+                                    Sender = Channel + " " + Network + "_" + Station + " Station",
+                                    Text = $@"{Name} 지진계의 진동에 관한 추가 정보.
+진도 : {Earthquake.MMIToString(Earthquake.ConvertToMMI(wave.MaxPga))}
+지속시간 : 약 {string.Format("{0:F3}", (double)wave.Length / SamplingRate)}초
 지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
-                                    };
+                                };
 
-                                    m_msgQueue.Enqueue(msg);
-                                }
+                                m_msgQueue.Enqueue(msg);
+
+
+                                // 파형 제거
+                                m_waveBuffer.RemoveAt(w);
+                                --w;
                             }
                         }
-                        else
+
+
+                        if (m_waveBuffer.Count <= 0)
                         {
+                            // 트리거 PGA 리셋
+                            TriggerPga = DangerPga;
+
+
                             // 평소 PGA 계산
                             NormalPga = subSamples
                                 .Select((wav) => Math.Abs(wav) / Gain)
