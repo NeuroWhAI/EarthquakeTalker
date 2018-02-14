@@ -214,10 +214,17 @@ namespace EarthquakeTalker
                             // 새 파형 생성
                             var newWave = new Wave()
                             {
-                                Length = 0,
-                                MaxPga = pga
+                                Length = 1,
+                                MaxPga = pga,
+                                TotalPga = pga,
                             };
-                            newWave.AddWave(subSamples.Skip(maxDataIndex));
+
+                            // 초기 데이터가 없어서 분석이 종료되는 불상사 방지
+                            // 어차피 최대값 풀링 때문에 0은 무시된다.
+                            newWave.AddWave(0);
+
+                            // 트리거 이후의 데이터 추가
+                            newWave.AddWave(subSamples.Skip(maxDataIndex + 1));
 
                             m_waveBuffer.Add(newWave);
                         }
@@ -253,6 +260,7 @@ namespace EarthquakeTalker
                                 }
 
                                 ++wave.Length;
+                                wave.TotalPga += poolingPga;
                             }
 
                             // 마지막 파형이 아니라면
@@ -282,6 +290,7 @@ namespace EarthquakeTalker
                                     Text = $@"{Name} 지진계의 진동에 관한 중간 분석 결과.
 진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
+진동 수치 : {string.Format("{0:F3}", wave.TotalPga)} 이상
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
                                 };
@@ -300,6 +309,7 @@ namespace EarthquakeTalker
                                     Text = $@"{Name} 지진계의 진동에 관한 최종 분석 결과.
 진도 : {Earthquake.MMIToString(Earthquake.ConvertToMMI(wave.MaxPga))}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
+진동 수치 : {string.Format("{0:F3}", wave.TotalPga)}
 지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
                                 };
 

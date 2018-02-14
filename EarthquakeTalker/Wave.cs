@@ -26,7 +26,15 @@ namespace EarthquakeTalker
         public bool IsDanger
         { get; set; } = false;
 
+        public double TotalPga
+        { get; set; } = 0;
+
         private List<double> m_wave = new List<double>();
+
+        public void AddWave(double wave)
+        {
+            m_wave.Add(wave);
+        }
 
         public void AddWave(IEnumerable<double> wave)
         {
