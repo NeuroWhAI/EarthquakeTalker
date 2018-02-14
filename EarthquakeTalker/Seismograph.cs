@@ -62,6 +62,9 @@ namespace EarthquakeTalker
         public delegate void SeismographDataReceivedEventHandler(int index, List<double> waveform);
         public event SeismographDataReceivedEventHandler WhenDataReceived = null;
 
+        public double DangerWaveTime
+        { get; set; } = 0.3;
+
         private int SamplingRate
         { get; set; } = 0;
         
@@ -180,12 +183,11 @@ namespace EarthquakeTalker
 
                             var msg = new Message()
                             {
-                                Level = Message.Priority.Critical,
+                                Level = Message.Priority.Normal,
                                 Sender = Channel + " " + Network + "_" + Station + " Station",
                                 Text = $@"{Name} 지진계에서 진동 감지됨.
 수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
 예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
-진원지 : 알 수 없음.
 오류나 생활진동일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
@@ -259,16 +261,40 @@ namespace EarthquakeTalker
                             wave.RemoveWave(checkedCount);
 
 
+                            double waveTime = (double)wave.Length / SamplingRate;
+
+                            if (wave.IsDanger == false && waveTime > DangerWaveTime)
+                            {
+                                wave.IsDanger = true;
+
+
+                                int mmi = Earthquake.ConvertToMMI(wave.MaxPga);
+
+                                var msg = new Message()
+                                {
+                                    Level = Message.Priority.Critical,
+                                    Sender = Channel + " " + Network + "_" + Station + " Station",
+                                    Text = $@"{Name} 지진계의 진동에 관한 중간 분석 결과.
+진도 : {Earthquake.MMIToString(mmi)}
+지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
+
+{Earthquake.GetKnowHowFromMMI(mmi)}",
+                                };
+
+                                m_msgQueue.Enqueue(msg);
+                            }
+
+
                             // 분석이 종료되었으면
-                            if (wave.BufferLength <= 0 && SamplingRate > 0)
+                            if (wave.BufferLength <= 0)
                             {
                                 var msg = new Message()
                                 {
-                                    Level = Message.Priority.High,
+                                    Level = Message.Priority.Normal,
                                     Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} 지진계의 진동에 관한 추가 정보.
+                                    Text = $@"{Name} 지진계의 진동에 관한 최종 분석 결과.
 진도 : {Earthquake.MMIToString(Earthquake.ConvertToMMI(wave.MaxPga))}
-지속시간 : 약 {string.Format("{0:F3}", (double)wave.Length / SamplingRate)}초
+지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
 지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
                                 };
 

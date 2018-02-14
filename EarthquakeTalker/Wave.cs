@@ -23,6 +23,9 @@ namespace EarthquakeTalker
         public double this[int index]
         { get { return m_wave[index]; } }
 
+        public bool IsDanger
+        { get; set; } = false;
+
         private List<double> m_wave = new List<double>();
 
         public void AddWave(IEnumerable<double> wave)
