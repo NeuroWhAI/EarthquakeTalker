@@ -45,6 +45,11 @@ namespace EarthquakeTalker
         private double NormalPga
         { get; set; } = 0.0016;
 
+        public double MinNormalPga
+        { get; set; } = 0.0016;
+        public double MaxNormalPga
+        { get; set; } = 0.0024;
+
         public string Name
         { get; set; }
 
@@ -320,7 +325,8 @@ namespace EarthquakeTalker
                                 .Max();
                             NormalPga *= 2;
 
-                            NormalPga = Math.Max(NormalPga, 0.0016);
+                            NormalPga = Math.Max(NormalPga, MinNormalPga);
+                            NormalPga = Math.Min(NormalPga, MaxNormalPga);
                         }
 
 
