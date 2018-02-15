@@ -136,12 +136,17 @@ namespace EarthquakeTalker
                 http.ContentLength = byteArray.Length;
 
 
-                Stream dataStream = http.GetRequestStream();
-                dataStream.Write(byteArray, 0, byteArray.Length);
-                dataStream.Close();
+                using (Stream dataStream = http.GetRequestStream())
+                {
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                    dataStream.Close();
+                }
 
 
-                var res = http.GetResponse();
+                using (WebResponse res = http.GetResponse())
+                {
+                    res.Close();
+                }
             }
             catch (Exception exp)
             {
