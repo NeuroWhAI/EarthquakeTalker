@@ -124,13 +124,13 @@ namespace EarthquakeTalker
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천")
-            { DangerPga = 0.0013, });
+            { DangerPga = 0.0013, DangerWaveTime = 0.05 });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "JP", "JTU", 1.000000e+09 / 100, "대마도")
-            { DangerPga = 0.0026, });
+            { DangerPga = 0.0026, DangerWaveTime = 0.05 });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
-            { DangerPga = 0.0013, });
+            { DangerPga = 0.0013, DangerWaveTime = 0.05 });
             seismographList.Add(new WinstonSeismograph(winstonIp, winstonPort, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
-            { DangerPga = 0.006, Endian = true });
+            { DangerPga = 0.006, DangerWaveTime = 0.6, Endian = true });
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
