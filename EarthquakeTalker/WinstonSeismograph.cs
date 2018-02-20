@@ -31,7 +31,7 @@ namespace EarthquakeTalker
         private readonly int m_port;
 
         private DateTime m_latestCheckTime = DateTime.UtcNow;
-        private TimeSpan m_checkDelay = TimeSpan.FromSeconds(2.0);
+        private TimeSpan m_checkDelay = TimeSpan.FromSeconds(3.0);
 
         //###########################################################################################################
 
@@ -97,6 +97,9 @@ namespace EarthquakeTalker
             stream.Write(data, 0, data.Length);
 
 
+            bool parsingFail = true;
+
+
             var buffer = new StringBuilder();
 
             int oneByte = 0;
@@ -151,6 +154,9 @@ namespace EarthquakeTalker
 
                                 AppendSample(count);
                             }
+
+
+                            parsingFail = false;
                         }
                     }
                 }
@@ -159,6 +165,12 @@ namespace EarthquakeTalker
 
             stream.Close();
             client.Close();
+
+
+            if (parsingFail)
+            {
+                Console.WriteLine("Parsing error in Winston seismograph");
+            }
         }
 
         private byte[] ReverseBytes(byte[] bytes, int offset, int size)
