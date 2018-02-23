@@ -158,8 +158,25 @@ namespace EarthquakeTalker
 
                             parsingFail = false;
                         }
+                        else
+                        {
+                            Console.WriteLine("Winston-{0} = Length: {1}, Time: {2}, Sampling Rate: {3}",
+                                this.Index, length, startTime - beginTicks, samplingRate);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Winston-{0} = Left: {1}", this.Index, leftBytes);
                     }
                 }
+                else
+                {
+                    Console.WriteLine("Winston-{0} = {1}", this.Index, buffer.ToString());
+                }
+            }
+            else
+            {
+                Console.WriteLine("Winston-{0} = {1}", this.Index, buffer.ToString());
             }
 
 
@@ -169,7 +186,7 @@ namespace EarthquakeTalker
 
             if (parsingFail)
             {
-                Console.WriteLine("Parsing error in Winston seismograph");
+                Console.WriteLine("Parsing error in Winston seismograph-{0}", this.Index);
             }
         }
 
