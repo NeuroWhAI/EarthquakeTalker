@@ -57,6 +57,12 @@ namespace EarthquakeTalker
                     string scaleText = GetTableContent(html, "<td", offset, out offset);
                     string description = GetTableContent(html, "<td", offset, out offset);
 
+                    if (string.IsNullOrEmpty(date) || string.IsNullOrEmpty(location)
+                        || string.IsNullOrEmpty(scaleText) || string.IsNullOrEmpty(description))
+                    {
+                        return null;
+                    }
+
                     var buffer = new StringBuilder();
                     buffer.Append("진원시 : ");
                     buffer.AppendLine(date);
@@ -137,6 +143,14 @@ namespace EarthquakeTalker
 
         private string GetTableContent(string html, string prefix, int beginIndex, out int endIndex)
         {
+            if (beginIndex < 0)
+            {
+                endIndex = -1;
+
+                return string.Empty;
+            }
+
+
             int begin = html.IndexOf(prefix, beginIndex);
 
             if (begin >= 0)
@@ -155,6 +169,7 @@ namespace EarthquakeTalker
                     return Util.ConvertHtmlToText(content).Trim();
                 }
             }
+
 
             endIndex = -1;
 
