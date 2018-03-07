@@ -32,6 +32,7 @@ namespace EarthquakeTalker
 
         private DateTime m_latestCheckTime = DateTime.UtcNow;
         private TimeSpan m_checkDelay = TimeSpan.FromSeconds(3.0);
+        private TimeSpan m_limitTime = TimeSpan.FromSeconds(30.0);
 
         //###########################################################################################################
 
@@ -58,7 +59,7 @@ namespace EarthquakeTalker
                 if (elapsedTime >= m_checkDelay)
                 {
                     // 너무 많이 차이나면 포기.
-                    if (elapsedTime > TimeSpan.FromSeconds(40.0))
+                    if (elapsedTime > m_limitTime)
                     {
                         m_latestCheckTime = now - m_checkDelay;
                     }
@@ -169,7 +170,7 @@ namespace EarthquakeTalker
                         Console.WriteLine("Winston-{0} = Left: {1}", this.Index, leftBytes);
                     }
                 }
-                else
+                else if (limit < 0)
                 {
                     Console.WriteLine("Winston-{0} = {1}", this.Index, buffer.ToString());
                 }
