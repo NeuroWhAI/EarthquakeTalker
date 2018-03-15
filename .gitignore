@@ -6,9 +6,6 @@
 *.user
 *.userosscache
 *.sln.docstates
-twitterKey.txt
-telegrambotkey.txt
-kakao.txt
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
