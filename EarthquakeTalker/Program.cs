@@ -84,6 +84,24 @@ namespace EarthquakeTalker
             }
 
 
+            int msgServerPort = -1;
+
+            // 메세지 서버 정보 불러오기
+            try
+            {
+                using (var sr = new StreamReader(new FileStream("server.txt", FileMode.Open)))
+                {
+                    string temp = sr.ReadLine();
+                    int.TryParse(temp, out msgServerPort);
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("server.txt 파일을 찾을 수 없습니다.");
+                return;
+            }
+
+
             /// GUI 표준 입력 동기화 객체
             object lockControllerInput = new object();
 #if DEBUG
@@ -120,6 +138,7 @@ namespace EarthquakeTalker
             /// 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
             talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
+            talker.AddTalker(new MessageServer(msgServerPort));
 
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
