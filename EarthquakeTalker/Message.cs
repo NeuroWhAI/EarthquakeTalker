@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace EarthquakeTalker
 {
@@ -74,6 +75,28 @@ namespace EarthquakeTalker
                 Preview = Preview,
                 RetryCount = RetryCount,
             };
+        }
+
+        public void WriteToStream(BinaryWriter bw)
+        {
+            bw.Write(this.Id.ToByteArray());
+            bw.Write(this.CreationTime.ToBinary());
+            bw.Write((int)this.Level);
+            bw.Write(this.Sender);
+            bw.Write(this.Text);
+            bw.Write(this.Preview);
+            bw.Write(this.RetryCount);
+        }
+
+        public void ReadFromStrem(BinaryReader br)
+        {
+            this.Id = new Guid(br.ReadBytes(16));
+            this.CreationTime = DateTime.FromBinary(br.ReadInt64());
+            this.Level = (Priority)br.ReadInt32();
+            this.Sender = br.ReadString();
+            this.Text = br.ReadString();
+            this.Preview = br.ReadBoolean();
+            this.RetryCount = br.ReadInt32();
         }
     }
 }
