@@ -88,7 +88,7 @@ namespace EarthquakeTalker
             bw.Write(this.RetryCount);
         }
 
-        public void ReadFromStrem(BinaryReader br)
+        public void ReadFromStream(BinaryReader br)
         {
             this.Id = new Guid(br.ReadBytes(16));
             this.CreationTime = DateTime.FromBinary(br.ReadInt64());
