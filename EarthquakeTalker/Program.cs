@@ -138,7 +138,7 @@ namespace EarthquakeTalker
             /// 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
             talker.AddTalker(new TelegramBot("neurowhai_earthquake_channel"));
-            talker.AddTalker(new MessageServer(msgServerPort));
+            talker.AddTalker(new MessageServer(msgServerPort, "messages.dat"));
 
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();

@@ -5,13 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
+using System.IO;
 
 namespace EarthquakeTalker
 {
     public class MessageServer : Talker
     {
-        public MessageServer(int port)
+        public MessageServer(int port, string savefile)
         {
+            this.SavePath = savefile;
+
+            LoadMessages();
+
+
             m_server = new TcpListener(IPAddress.Any, port);
             m_server.Start();
 
@@ -19,6 +25,9 @@ namespace EarthquakeTalker
         }
 
         //################################################################################################
+
+        public string SavePath
+        { get; set; }
 
         /// <summary>
         /// 메세지 캐시의 최대 크기.
@@ -36,6 +45,50 @@ namespace EarthquakeTalker
         private TcpListener m_server = null;
 
         //################################################################################################
+
+        private void SaveMessages()
+        {
+            lock (m_lockMsgList)
+            {
+                using (var bw = new BinaryWriter(new FileStream(this.SavePath, FileMode.Create)))
+                {
+                    bw.Write(m_msgList.Count);
+
+                    foreach (var msg in m_msgList)
+                    {
+                        msg.WriteToStream(bw);
+                    }
+
+
+                    bw.Close();
+                }
+            }
+        }
+
+        private void LoadMessages()
+        {
+            if (File.Exists(this.SavePath))
+            {
+                m_msgList.Clear();
+
+
+                using (var br = new BinaryReader(new FileStream(this.SavePath, FileMode.Open)))
+                {
+                    int count = br.ReadInt32();
+
+                    for (int i = 0; i < count; ++i)
+                    {
+                        var msg = new Message();
+                        msg.ReadFromStream(br);
+
+                        m_msgList.Add(msg);
+                    }
+
+
+                    br.Close();
+                }
+            }
+        }
 
         private void Listen()
         {
@@ -168,6 +221,9 @@ namespace EarthquakeTalker
                     m_msgList.RemoveAt(0);
                 }
             }
+
+
+            SaveMessages();
 
 
             return true;
