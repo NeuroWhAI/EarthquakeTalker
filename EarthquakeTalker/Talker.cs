@@ -67,11 +67,11 @@ namespace EarthquakeTalker
                         Console.WriteLine();
                     }
 
-                    Task.Delay(3000).Wait();
+                    Task.Delay(1000).Wait();
                 }
 
 
-                Task.Delay(1000).Wait();
+                Task.Delay(100).Wait();
             }
 
 

@@ -44,10 +44,17 @@ namespace EarthquakeTalker
 
         public void TalkAll()
         {
+            var tasks = new Task[m_talkerList.Count];
+
+            int index = 0;
             foreach (var talker in m_talkerList)
             {
-                talker.TalkAll();
+                tasks[index] = Task.Factory.StartNew(() => talker.TalkAll());
+
+                ++index;
             }
+
+            Task.WaitAll(tasks);
         }
     }
 }
