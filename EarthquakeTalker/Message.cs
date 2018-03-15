@@ -20,7 +20,6 @@ namespace EarthquakeTalker
         
         public Message(string text = "", string sender = "", Priority level = Priority.Normal)
         {
-            CreationTime = DateTime.UtcNow.AddHours(9); // KST
             Level = level;
             Sender = sender;
             Text = text;
@@ -28,8 +27,11 @@ namespace EarthquakeTalker
 
         //##############################################################################
 
+        public Guid Id
+        { get; private set; } = Guid.NewGuid();
+
         public DateTime CreationTime
-        { get; set; }
+        { get; set; } = DateTime.UtcNow.AddHours(9); // KST
 
         public Priority Level
         { get; set; }
@@ -64,6 +66,7 @@ namespace EarthquakeTalker
         {
             return new Message()
             {
+                Id = Id,
                 CreationTime = CreationTime,
                 Level = Level,
                 Sender = Sender,
