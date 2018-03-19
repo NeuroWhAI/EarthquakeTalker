@@ -252,24 +252,16 @@ namespace EarthquakeTalker
         {
             lock (m_lockMsgList)
             {
-                bool found = false;
+                int index = m_msgList.FindLastIndex((msg) => msg.Id == guid);
 
-                foreach (var msg in m_msgList)
+                if (index + 1 < m_msgList.Count)
                 {
-                    if (found)
-                    {
-                        return msg;
-                    }
-
-                    if (msg.Id == guid)
-                    {
-                        found = true;
-                    }
+                    return m_msgList[index + 1];
                 }
 
 
                 // 못찾았으면 가장 오래된 메세지를 반환.
-                if (found == false && m_msgList.Count > 0)
+                if (index < 0 && m_msgList.Count > 0)
                 {
                     return m_msgList[0];
                 }
