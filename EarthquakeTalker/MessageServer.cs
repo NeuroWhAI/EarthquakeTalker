@@ -254,16 +254,17 @@ namespace EarthquakeTalker
             {
                 int index = m_msgList.FindLastIndex((msg) => msg.Id == guid);
 
-                if (index + 1 < m_msgList.Count)
+                if (index < 0)
+                {
+                    // 못찾았으면 가장 오래된 메세지를 반환.
+                    if (m_msgList.Count > 0)
+                    {
+                        return m_msgList[0];
+                    }
+                }
+                else if (index + 1 < m_msgList.Count)
                 {
                     return m_msgList[index + 1];
-                }
-
-
-                // 못찾았으면 가장 오래된 메세지를 반환.
-                if (index < 0 && m_msgList.Count > 0)
-                {
-                    return m_msgList[0];
                 }
             }
 
