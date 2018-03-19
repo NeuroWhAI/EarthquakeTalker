@@ -87,6 +87,11 @@ namespace EarthquakeTalker
 
                     br.Close();
                 }
+
+
+                Console.WriteLine();
+                Console.WriteLine("Load {0} messages.", m_msgList.Count);
+                Console.WriteLine();
             }
         }
 
