@@ -70,6 +70,9 @@ namespace EarthquakeTalker
         public double DangerWaveTime
         { get; set; } = 0.3;
 
+        public double MinDangerWaveTime
+        { get; set; } = 0.05;
+
         private int SamplingRate
         { get; set; } = 0;
         
@@ -184,23 +187,6 @@ namespace EarthquakeTalker
                         // PGA가 위험 수치를 넘어서면
                         if (pga > TriggerPga)
                         {
-                            int mmi = Earthquake.ConvertToMMI(pga);
-
-                            var msg = new Message()
-                            {
-                                Level = Message.Priority.Normal,
-                                Sender = Channel + " " + Network + "_" + Station + " Station",
-                                Text = $@"{Name} 지진계에서 진동 감지됨.
-수치 : {(pga / DangerPga * 100.0).ToString("F2")}%
-예상 진도(MMI) : {Earthquake.MMIToString(mmi)}
-오류나 생활진동일 수 있으니 침착하시고 소식에 귀 기울여 주시기 바랍니다.
-
-{Earthquake.GetKnowHowFromMMI(mmi)}",
-                            };
-
-                            m_msgQueue.Enqueue(msg);
-
-
                             TriggerPga = pga;
 
 
@@ -287,7 +273,8 @@ namespace EarthquakeTalker
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} 지진계의 진동에 관한 중간 분석 결과.
+                                    Text = $@"{Name} 지진계의 진동에 관한 조기 분석 결과.
+수치 : {(wave.MaxPga / DangerPga * 100.0).ToString("F2")}%
 진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
 진동 수치 : {string.Format("{0:F3}", wave.TotalPga)} 이상
@@ -302,18 +289,22 @@ namespace EarthquakeTalker
                             // 분석이 종료되었으면
                             if (wave.BufferLength <= 0)
                             {
-                                var msg = new Message()
+                                if (waveTime >= MinDangerWaveTime)
                                 {
-                                    Level = Message.Priority.Normal,
-                                    Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} 지진계의 진동에 관한 최종 분석 결과.
+                                    var msg = new Message()
+                                    {
+                                        Level = Message.Priority.Normal,
+                                        Sender = Channel + " " + Network + "_" + Station + " Station",
+                                        Text = $@"{Name} 지진계의 진동에 관한 최종 분석 결과.
+수치 : {(wave.MaxPga / DangerPga * 100.0).ToString("F2")}%
 진도 : {Earthquake.MMIToString(Earthquake.ConvertToMMI(wave.MaxPga))}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
 진동 수치 : {string.Format("{0:F3}", wave.TotalPga)}
 지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
-                                };
+                                    };
 
-                                m_msgQueue.Enqueue(msg);
+                                    m_msgQueue.Enqueue(msg);
+                                }
 
 
                                 // 파형 제거
