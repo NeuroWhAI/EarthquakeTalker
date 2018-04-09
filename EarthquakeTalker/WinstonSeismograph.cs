@@ -95,6 +95,7 @@ namespace EarthquakeTalker
             byte[] data = Encoding.ASCII.GetBytes(message);
 
             NetworkStream stream = client.GetStream();
+            stream.ReadTimeout = (int)m_limitTime.TotalMilliseconds / 2;
             stream.Write(data, 0, data.Length);
 
 
