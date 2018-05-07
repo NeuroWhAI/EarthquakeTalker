@@ -81,9 +81,13 @@ namespace EarthquakeTalker
                                         if (centerIndex >= 0)
                                         {
                                             beginIndex = html.IndexOf(">", centerIndex + 16) + 1;
-                                            endIndex = html.IndexOf("</", beginIndex);
+                                            endIndex = html.IndexOf("</td", beginIndex);
 
                                             intensity = html.Substring(beginIndex, endIndex - beginIndex);
+
+                                            intensity = Util.RemoveHtmlTag(intensity);
+
+                                            intensity = WebUtility.HtmlDecode(intensity);
                                         }
 
 

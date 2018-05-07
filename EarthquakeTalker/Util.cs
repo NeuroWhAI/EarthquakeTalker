@@ -23,5 +23,24 @@ namespace EarthquakeTalker
 
             return msgBdr.ToString();
         }
+
+        public static string RemoveHtmlTag(string html)
+        {
+            StringBuilder msgBdr = new StringBuilder();
+
+            for (int i = 0; i < html.Length; ++i)
+            {
+                if (html[i] == '<')
+                {
+                    for (++i; i < html.Length && html[i] != '>'; ++i) ;
+                }
+                else
+                {
+                    msgBdr.Append(html[i]);
+                }
+            }
+
+            return msgBdr.ToString();
+        }
     }
 }
