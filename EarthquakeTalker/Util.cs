@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace EarthquakeTalker
 {
@@ -13,15 +14,8 @@ namespace EarthquakeTalker
             StringBuilder msgBdr = new StringBuilder(html);
             msgBdr.Replace("<br>", "\n");
             msgBdr.Replace("<br/>", "\n");
-            msgBdr.Replace("&#40;", "(");
-            msgBdr.Replace("&#41;", ")");
-            msgBdr.Replace("&nbsp;", " ");
-            msgBdr.Replace("&lt;", "<");
-            msgBdr.Replace("&gt;", ">");
-            msgBdr.Replace("&amp;", "&");
-            msgBdr.Replace("&quot;", "\"");
 
-            return msgBdr.ToString();
+            return WebUtility.HtmlDecode(msgBdr.ToString());
         }
 
         public static string RemoveHtmlTag(string html)
