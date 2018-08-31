@@ -54,9 +54,10 @@ namespace EarthquakeTalker
 
                     if (begin >= 0)
                     {
-                        int end = kmaNotiHtml.IndexOf("</p>", begin);
+                        int end = kmaNotiHtml.LastIndexOf("</");
 
-                        string noti = Util.ConvertHtmlToText(kmaNotiHtml.Substring(begin + 1, end - begin - 1)).Trim();
+                        string htmlContent = kmaNotiHtml.Substring(begin + 1, end - begin - 1);
+                        string noti = Util.ConvertHtmlToText(htmlContent).Trim();
 
                         if (noti.Contains("지진") || noti.Contains("여진"))
                         {
@@ -95,7 +96,13 @@ namespace EarthquakeTalker
                 Console.WriteLine(exp.StackTrace);
 
 
+                if (m_client != null)
+                {
+                    m_client.Dispose();
+                }
+
                 Thread.Sleep(10000);
+
 
                 m_client = new HttpClient();
             }
