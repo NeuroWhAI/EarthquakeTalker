@@ -156,6 +156,7 @@ namespace EarthquakeTalker
             workerList.AddRange(seismographList);
             workerList.Add(new UserWatcher("KMA_earthquake", new KMAEarthquakeFormatter()));
             workerList.Add(new KmaHome());
+            workerList.Add(new KmaMicro());
             workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ+-캠",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
             workerList.Add(new NecisEarlyWarning());
