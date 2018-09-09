@@ -91,8 +91,16 @@ namespace EarthquakeTalker
             }
             catch (Exception exp)
             {
-                Console.WriteLine(exp.Message);
-                Console.WriteLine(exp.StackTrace);
+                if (exp.InnerException == null)
+                {
+                    Console.WriteLine(exp.Message);
+                    Console.WriteLine(exp.StackTrace);
+                }
+                else
+                {
+                    Console.WriteLine(exp.InnerException.Message);
+                    Console.WriteLine(exp.InnerException.StackTrace);
+                }
 
 
                 if (m_client != null)
