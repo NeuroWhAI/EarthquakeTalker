@@ -19,6 +19,7 @@ namespace UnitTestProject
             }));
 
             Assert.IsTrue(msg.Text.StartsWith("http"));
+            Assert.IsTrue(msg.Sender.Contains("진도") || msg.Sender == "기상청 지진 통보문");
         }
     }
 }
