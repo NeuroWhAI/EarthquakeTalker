@@ -13,12 +13,12 @@ namespace EarthquakeTalker
 {
     public class KMAEarthquakeFormatter : ITweetFormatter
     {
-        private void SendImage(object prm)
+        public void SendImage(object prm)
         {
             var sender = prm as Action<Message>;
 
 
-            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(2));
+            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
 
 
             for (int retry = 0; retry < 32; ++retry)
@@ -38,21 +38,13 @@ namespace EarthquakeTalker
 
                     if (string.IsNullOrWhiteSpace(html) == false)
                     {
-                        int centerIndex = html.IndexOf("eqk_img");
+                        int centerIndex = html.IndexOf("DATA/EQK/INTENSITY");
 
                         if (centerIndex > 0)
                         {
                             int endIndex = html.IndexOf('\"', centerIndex, html.Length - centerIndex);
 
-                            int beginIndex = centerIndex - 1;
-
-                            while (html[beginIndex] != '\"')
-                            {
-                                --beginIndex;
-
-                                if (beginIndex < 0)
-                                    break;
-                            }
+                            int beginIndex = html.LastIndexOf('\"', centerIndex - 1);
 
                             if (beginIndex >= 0 && endIndex >= 0)
                             {
@@ -77,7 +69,7 @@ namespace EarthquakeTalker
                                         // 진도 얻기.
                                         string intensity = string.Empty;
 
-                                        centerIndex = html.IndexOf("진도");
+                                        centerIndex = html.IndexOf("계기진도");
                                         if (centerIndex >= 0)
                                         {
                                             beginIndex = html.IndexOf(">", centerIndex + 16) + 1;

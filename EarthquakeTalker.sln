@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EarthquakeTalker", "EarthquakeTalker\EarthquakeTalker.csproj", "{E303E31F-14EB-4FAF-ABF2-B9D9F6627F3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EarthquakeTalkerController", "EarthquakeTalkerController\EarthquakeTalkerController.csproj", "{AB149A14-AA2B-4CDC-8DF5-CF97FC2D9099}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject", "UnitTestProject\UnitTestProject.csproj", "{05572110-BEBB-4AD3-AEE4-4BB9730B05FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{AB149A14-AA2B-4CDC-8DF5-CF97FC2D9099}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB149A14-AA2B-4CDC-8DF5-CF97FC2D9099}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB149A14-AA2B-4CDC-8DF5-CF97FC2D9099}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05572110-BEBB-4AD3-AEE4-4BB9730B05FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05572110-BEBB-4AD3-AEE4-4BB9730B05FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05572110-BEBB-4AD3-AEE4-4BB9730B05FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05572110-BEBB-4AD3-AEE4-4BB9730B05FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B57A7983-63A1-477A-BA17-B83459E6D78B}
 	EndGlobalSection
 EndGlobal
