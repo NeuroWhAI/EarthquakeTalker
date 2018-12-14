@@ -48,45 +48,34 @@ namespace EarthquakeTalker
                 var encoding = Encoding.GetEncoding(51949/*euc-kr*/);
                 var kmaNotiHtml = encoding.GetString(byteArray, 0, byteArray.Length);
 
-                if (string.IsNullOrWhiteSpace(kmaNotiHtml) == false)
+                string noti = Util.ConvertHtmlToText(kmaNotiHtml).Trim();
+
+                if (noti.Contains("지진") || noti.Contains("여진"))
                 {
-                    int begin = kmaNotiHtml.IndexOf(">");
-
-                    if (begin >= 0)
+                    if (string.IsNullOrEmpty(m_latestNoti))
                     {
-                        int end = kmaNotiHtml.LastIndexOf("</");
+                        m_latestNoti = noti;
 
-                        string htmlContent = kmaNotiHtml.Substring(begin + 1, end - begin - 1);
-                        string noti = Util.ConvertHtmlToText(htmlContent).Trim();
 
-                        if (noti.Contains("지진") || noti.Contains("여진"))
+                        m_logger.PushLog($"테스트 출력\n{noti}");
+                    }
+                    else if (m_latestNoti != noti)
+                    {
+                        m_latestNoti = noti;
+
+                        m_logger.PushLog(noti);
+
+
+                        return new Message()
                         {
-                            if (string.IsNullOrEmpty(m_latestNoti))
-                            {
-                                m_latestNoti = noti;
-
-
-                                m_logger.PushLog($"테스트 출력\n{noti}");
-                            }
-                            else if (m_latestNoti != noti)
-                            {
-                                m_latestNoti = noti;
-
-                                m_logger.PushLog(noti);
-
-
-                                return new Message()
-                                {
-                                    Level = Message.Priority.Normal,
-                                    Sender = "기상청 지진 안내",
-                                    Text = noti,
-                                };
-                            }
-                            else
-                            {
-                                Console.Write(',');
-                            }
-                        }
+                            Level = Message.Priority.Normal,
+                            Sender = "기상청 지진 안내",
+                            Text = noti,
+                        };
+                    }
+                    else
+                    {
+                        Console.Write(',');
                     }
                 }
             }

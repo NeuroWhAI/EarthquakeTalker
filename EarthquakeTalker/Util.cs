@@ -2,20 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Net;
 
 namespace EarthquakeTalker
 {
-    internal static class Util
+    public static class Util
     {
         public static string ConvertHtmlToText(string html)
         {
+            html = Regex.Replace(html, @" {2,}", " ");
+            html = Regex.Replace(html, @"> +", ">");
+            html = Regex.Replace(html, @" +<", "<");
+
             StringBuilder msgBdr = new StringBuilder(html);
             msgBdr.Replace("<br>", "\n");
             msgBdr.Replace("<br/>", "\n");
+            msgBdr.Replace("</p>", "\n");
 
-            return WebUtility.HtmlDecode(msgBdr.ToString());
+            return WebUtility.HtmlDecode(RemoveHtmlTag(msgBdr.ToString()));
         }
 
         public static string RemoveHtmlTag(string html)
