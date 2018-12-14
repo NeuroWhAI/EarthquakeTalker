@@ -7,7 +7,7 @@ namespace UnitTestProject
     [TestClass]
     public class QueryTest
     {
-        [TestMethod]
+        [TestMethod, TestCategory("heavy")]
         public void QueryKmaEqkImageTest()
         {
             Message msg = null;
@@ -18,8 +18,11 @@ namespace UnitTestProject
                 msg = m;
             }));
 
-            Assert.IsTrue(msg.Text.StartsWith("http"));
-            Assert.IsTrue(msg.Sender.Contains("진도") || msg.Sender == "기상청 지진 통보문");
+            if (msg != null)
+            {
+                Assert.IsTrue(msg.Text.StartsWith("http"));
+                Assert.IsTrue(msg.Sender.Contains("진도") || msg.Sender == "기상청 지진 통보문");
+            }
         }
     }
 }
