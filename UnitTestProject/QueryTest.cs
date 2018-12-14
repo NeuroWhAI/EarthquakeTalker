@@ -7,7 +7,7 @@ namespace UnitTestProject
     [TestClass]
     public class QueryTest
     {
-        [TestMethod, TestCategory("heavy")]
+        [TestMethod, TestCategory("heavy"), Ignore()]
         public void QueryKmaEqkImageTest()
         {
             Message msg = null;
