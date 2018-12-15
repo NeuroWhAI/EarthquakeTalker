@@ -97,14 +97,14 @@ namespace EarthquakeTalker
 
             if (IsAccel)
             {
-                NormalValue = 0.07;
-                MinNormalValue = 0.06;
+                NormalValue = 0.03;
+                MinNormalValue = 0.03;
                 MaxNormalValue = 0.1;
             }
             else
             {
-                NormalValue = 0.03;
-                MinNormalValue = 0.02;
+                NormalValue = 0.01;
+                MinNormalValue = 0.01;
                 MaxNormalValue = 0.038;
             }
         }
