@@ -51,7 +51,7 @@ namespace EarthquakeTalkerController
                 var args = Console.ReadLine().Split('|');
                 graph.Name = args[0];
                 graph.Gain = double.Parse(args[1]);
-                graph.DangerPga = double.Parse(args[2]);
+                graph.DangerValue = double.Parse(args[2]);
             }
 
             m_onRun = true;

@@ -11,7 +11,7 @@ namespace EarthquakeTalker
         public int Length
         { get; set; } = 0;
 
-        public double MaxPga
+        public double MaxValue
         { get; set; } = 0;
 
         public IEnumerable<double> Buffer
@@ -26,7 +26,7 @@ namespace EarthquakeTalker
         public bool IsDanger
         { get; set; } = false;
 
-        public double TotalPga
+        public double TotalValue
         { get; set; } = 0;
 
         private List<double> m_wave = new List<double>();

@@ -35,7 +35,7 @@ namespace EarthquakeTalkerController
         public int MaxLength
         { get; set; } = 3072;
 
-        public double DangerPga
+        public double DangerValue
         { get; set; } = 0.0016;
 
         protected int m_tempMax = 0;
@@ -64,7 +64,7 @@ namespace EarthquakeTalkerController
             }
 
 
-            if (data / Gain > DangerPga / 2)
+            if (data / Gain > DangerValue / 2)
             {
                 m_captureGage = this.MaxLength;
             }
@@ -130,20 +130,20 @@ namespace EarthquakeTalkerController
             }
 
 
-            HeightScale = size.Height / 2 * 0.9 / Math.Max(maxData / Gain, DangerPga / 4);
+            HeightScale = size.Height / 2 * 0.9 / Math.Max(maxData / Gain, DangerValue / 4);
 
 
             g.DrawString(Name + "    " + m_latestDataTime.ToString("s"), SystemFonts.DefaultFont, Brushes.Black,
                 2, size.Height - SystemFonts.DefaultFont.Height - 2);
             g.DrawString("Gain: " + Gain, SystemFonts.DefaultFont, Brushes.Black, 2, 2);
             g.DrawString("Scale: " + HeightScale, SystemFonts.DefaultFont, Brushes.Black, 258, 2);
-            g.DrawString("Max PGA: " + (m_tempMax / Gain) + "g",
+            g.DrawString("Max PGA or PGV: " + (m_tempMax / Gain),
                 SystemFonts.DefaultFont, Brushes.Black, 258, 4 + SystemFonts.DefaultFont.Height);
 
 
             int halfHeight = size.Height / 2;
 
-            float dangerY = (float)(DangerPga * HeightScale);
+            float dangerY = (float)(DangerValue * HeightScale);
             g.DrawLine(Pens.Red, 0, halfHeight + dangerY,
                 size.Width, halfHeight + dangerY);
             g.DrawLine(Pens.Red, 0, halfHeight - dangerY,
@@ -170,9 +170,9 @@ namespace EarthquakeTalkerController
             }
 
 
-            g.DrawString("Level: " + (maxData / Gain / DangerPga * 100.0) + "%",
+            g.DrawString("Level: " + (maxData / Gain / DangerValue * 100.0) + "%",
                 SystemFonts.DefaultFont, Brushes.Black, 516, 2);
-            g.DrawString("PGA: " + (maxData / Gain) + "g",
+            g.DrawString("PGA or PGV: " + (maxData / Gain),
                 SystemFonts.DefaultFont, Brushes.Black, 516, 4 + SystemFonts.DefaultFont.Height);
 
 

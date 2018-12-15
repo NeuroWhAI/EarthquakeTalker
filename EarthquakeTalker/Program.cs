@@ -143,13 +143,13 @@ namespace EarthquakeTalker
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천")
-            { DangerPga = 0.0013, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005 });
+            { DangerValue = 0.03, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "JP", "JTU", 1.000000e+09 / 100, "대마도")
-            { DangerPga = 0.0026, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005 });
-            seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 3.352080e+09 / 100, "대전")
-            { DangerPga = 0.0013, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005 });
+            { DangerValue = 0.07, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
+            seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 6.327240e+08 / 100, "대전")
+            { DangerValue = 0.03, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
             seismographList.Add(new WinstonSeismograph(winstonIp, winstonPort, "00", "EHZ", "AM", "R3E8F", 3.358145e+08 / 100, "포항")
-            { DangerPga = 0.006, DangerWaveTime = 0.6, MinDangerWaveTime = 0.2, Endian = true });
+            { DangerValue = 0.06, DangerWaveTime = 0.6, MinDangerWaveTime = 0.2, IsAccel = false, Endian = true });
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
@@ -170,7 +170,7 @@ namespace EarthquakeTalker
                 // GUI에 지진계 정보 전달
                 if (controller != null)
                 {
-                    controller.StandardInput.WriteLine(sensor.Name + "|" + sensor.Gain + "|" + sensor.DangerPga);
+                    controller.StandardInput.WriteLine(sensor.Name + "|" + sensor.Gain + "|" + sensor.DangerValue);
 
                     sensor.WhenDataReceived += new Seismograph.SeismographDataReceivedEventHandler((index, waveform) =>
                     {

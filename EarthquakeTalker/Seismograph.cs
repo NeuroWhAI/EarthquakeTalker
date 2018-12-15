@@ -30,24 +30,29 @@ namespace EarthquakeTalker
         public string Station
         { get; protected set; } = string.Empty;
 
+        public bool IsAccel
+        { get; set; } = true;
+
+        public string TypeText => IsAccel ? "가속도계" : "속도계";
+
         /// <summary>
         /// 진폭을 이 값으로 나누면 지반 속도or가속도가 나온다.
         /// </summary>
         public double Gain
         { get; set; }
 
-        public double DangerPga
+        public double DangerValue
         { get; set; } = 0.0016;
 
-        private double TriggerPga
+        private double TriggerValue
         { get; set; } = 0.0016;
 
-        private double NormalPga
+        private double NormalValue
         { get; set; } = 0.0016;
 
-        public double MinNormalPga
+        private double MinNormalValue
         { get; set; } = 0.0016;
-        public double MaxNormalPga
+        private double MaxNormalValue
         { get; set; } = 0.0024;
 
         public string Name
@@ -87,11 +92,26 @@ namespace EarthquakeTalker
         protected override void BeforeStart(MultipleTalker talker)
         {
             this.JobDelay = TimeSpan.FromMilliseconds(200.0);
+
+            TriggerValue = DangerValue;
+
+            if (IsAccel)
+            {
+                NormalValue = 0.07;
+                MinNormalValue = 0.06;
+                MaxNormalValue = 0.1;
+            }
+            else
+            {
+                NormalValue = 0.03;
+                MinNormalValue = 0.02;
+                MaxNormalValue = 0.038;
+            }
         }
 
         protected override void AfterStop(MultipleTalker talker)
         {
-            TriggerPga = DangerPga;
+            TriggerValue = DangerValue;
 
             m_samples.Clear();
 
@@ -181,13 +201,13 @@ namespace EarthquakeTalker
                         }
 
 
-                        /// Max PGA
-                        double pga = maxData / Gain;
+                        /// Max PGA or PGV
+                        double groundValue = maxData / Gain;
 
-                        // PGA가 위험 수치를 넘어서면
-                        if (pga > TriggerPga)
+                        // 측정값이 위험 수치를 넘어서면
+                        if (groundValue > TriggerValue)
                         {
-                            TriggerPga = pga;
+                            TriggerValue = groundValue;
 
 
                             // 분석 중인 경우
@@ -201,8 +221,8 @@ namespace EarthquakeTalker
                             var newWave = new Wave()
                             {
                                 Length = 1,
-                                MaxPga = pga,
-                                TotalPga = pga,
+                                MaxValue = groundValue,
+                                TotalValue = groundValue,
                             };
 
                             // 초기 데이터가 없어서 분석이 종료되는 불상사 방지
@@ -234,10 +254,10 @@ namespace EarthquakeTalker
 
                                 double max = wave.Buffer.Skip(d).Take(WindowSize)
                                     .Max((wav) => Math.Abs(wav));
-                                double poolingPga = max / Gain;
+                                double poolingValue = max / Gain;
 
                                 // 안정화 되었거나 다른 파형이 나왔으면
-                                if (poolingPga < NormalPga || poolingPga > wave.MaxPga)
+                                if (poolingValue < NormalValue || poolingValue > wave.MaxValue)
                                 {
                                     // 분석 종료
                                     checkedCount = wave.BufferLength;
@@ -246,7 +266,7 @@ namespace EarthquakeTalker
                                 }
 
                                 ++wave.Length;
-                                wave.TotalPga += poolingPga;
+                                wave.TotalValue += poolingValue;
                             }
 
                             // 마지막 파형이 아니라면
@@ -267,17 +287,25 @@ namespace EarthquakeTalker
                                 wave.IsDanger = true;
 
 
-                                int mmi = Earthquake.ConvertToMMI(wave.MaxPga);
+                                int mmi = 0;
+                                if (IsAccel)
+                                {
+                                    mmi = Earthquake.ConvertPgaToMMI(wave.MaxValue);
+                                }
+                                else
+                                {
+                                    mmi = Earthquake.ConvertPgvToMMI(wave.MaxValue);
+                                }
 
                                 var msg = new Message()
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} 지진계의 진동에 관한 조기 분석 결과.
-수치 : {(wave.MaxPga / DangerPga * 100.0).ToString("F2")}%
+                                    Text = $@"{Name} {TypeText}의 진동에 관한 조기 분석 결과.
+수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
 진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
-진동 수치 : {string.Format("{0:F3}", wave.TotalPga)} 이상
+진동 수치 : {string.Format("{0:F3}", wave.TotalValue)} 이상
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
                                 };
@@ -291,15 +319,25 @@ namespace EarthquakeTalker
                             {
                                 if (waveTime >= MinDangerWaveTime)
                                 {
+                                    int mmi = 0;
+                                    if (IsAccel)
+                                    {
+                                        mmi = Earthquake.ConvertPgaToMMI(wave.MaxValue);
+                                    }
+                                    else
+                                    {
+                                        mmi = Earthquake.ConvertPgvToMMI(wave.MaxValue);
+                                    }
+
                                     var msg = new Message()
                                     {
                                         Level = Message.Priority.Normal,
                                         Sender = Channel + " " + Network + "_" + Station + " Station",
-                                        Text = $@"{Name} 지진계의 진동에 관한 최종 분석 결과.
-수치 : {(wave.MaxPga / DangerPga * 100.0).ToString("F2")}%
-진도 : {Earthquake.MMIToString(Earthquake.ConvertToMMI(wave.MaxPga))}
+                                        Text = $@"{Name} {TypeText}의 진동에 관한 최종 분석 결과.
+수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
+진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
-진동 수치 : {string.Format("{0:F3}", wave.TotalPga)}
+진동 수치 : {string.Format("{0:F3}", wave.TotalValue)}
 지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
                                     };
 
@@ -316,18 +354,18 @@ namespace EarthquakeTalker
 
                         if (m_waveBuffer.Count <= 0)
                         {
-                            // 트리거 PGA 리셋
-                            TriggerPga = DangerPga;
+                            // 트리거 기준 리셋
+                            TriggerValue = DangerValue;
 
 
-                            // 평소 PGA 계산
-                            NormalPga = subSamples
+                            // 평소 수치 계산
+                            NormalValue = subSamples
                                 .Select((wav) => Math.Abs(wav) / Gain)
                                 .Max();
-                            NormalPga *= 2;
+                            NormalValue *= 2;
 
-                            NormalPga = Math.Max(NormalPga, MinNormalPga);
-                            NormalPga = Math.Min(NormalPga, MaxNormalPga);
+                            NormalValue = Math.Max(NormalValue, MinNormalValue);
+                            NormalValue = Math.Min(NormalValue, MaxNormalValue);
                         }
 
 
