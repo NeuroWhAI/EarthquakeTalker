@@ -145,21 +145,23 @@ namespace EarthquakeTalker
                                 }
 
 
-                                var wc = new WebClient();
-                                wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-
-
-                                try
+                                using (var wc = new WebClient())
                                 {
-                                    // MiniSeed 다운로드
-                                    wc.DownloadFile(fileUri, m_tempSeedFile);
-                                }
-                                catch (Exception exp)
-                                {
-                                    Console.WriteLine(exp.Message);
-                                    Console.WriteLine(exp.StackTrace);
+                                    wc.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
-                                    Thread.Sleep(2000);
+
+                                    try
+                                    {
+                                        // MiniSeed 다운로드
+                                        wc.DownloadFile(fileUri, m_tempSeedFile);
+                                    }
+                                    catch (Exception exp)
+                                    {
+                                        Console.WriteLine(exp.Message);
+                                        Console.WriteLine(exp.StackTrace);
+
+                                        Thread.Sleep(2000);
+                                    }
                                 }
                                 
 
