@@ -11,6 +11,7 @@ namespace EarthquakeTalker
         public static int ConvertPgaToMMI(double pga)
         {
             // NOTE: 기상청 MMI scale
+            // %g=9.80665cm/s^2
 
             if (pga <= 0)
                 return 0;
@@ -40,6 +41,7 @@ namespace EarthquakeTalker
         public static int ConvertPgvToMMI(double pgv)
         {
             // NOTE: 기상청 MMI scale
+            // V=cm/s
 
             if (pgv <= 0)
                 return 0;
