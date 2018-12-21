@@ -120,14 +120,9 @@ namespace EarthquakeTalkerController
             }
 
 
-            int maxData = 0;
-
-            foreach (var data in copyWaveform)
-            {
-                var absData = Math.Abs(data);
-                if (absData > maxData)
-                    maxData = absData;
-            }
+            int maxData = (copyWaveform.Length > 0)
+                ? copyWaveform.AsParallel().Max(Math.Abs)
+                : 0;
 
 
             HeightScale = size.Height / 2 * 0.9 / Math.Max(maxData / Gain, DangerValue / 4);
