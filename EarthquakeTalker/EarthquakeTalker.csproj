@@ -74,6 +74,7 @@
     <Compile Include="KMAEarthquakeFormatter.cs" />
     <Compile Include="KmaHome.cs" />
     <Compile Include="KmaMicro.cs" />
+    <Compile Include="KmaNews.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MessageServer.cs" />
     <Compile Include="MultipleTalker.cs" />

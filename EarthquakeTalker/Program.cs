@@ -160,6 +160,7 @@ namespace EarthquakeTalker
             workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ+-캠",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
             workerList.Add(new NecisEarlyWarning());
+            workerList.Add(new KmaNews());
 
             int sensorIndex = 0;
             foreach (var sensor in seismographList)
