@@ -19,7 +19,7 @@ namespace EarthquakeTalker
         protected string m_latestTitle = string.Empty;
         protected string m_latestTime = string.Empty;
         protected bool m_notiMode = true; // 이전 시간 정보를 얻기 위해 true로 설정.
-        protected DateTime m_notiTimeLimit;
+        protected DateTime m_notiTimeLimit = DateTime.MinValue;
 
         protected HttpClient m_client = new HttpClient();
 
@@ -243,15 +243,16 @@ namespace EarthquakeTalker
                 string title = html.Substring(index + 1, endIndex - index - 1);
                 title = Util.ConvertHtmlToText(title);
 
+                if (string.IsNullOrEmpty(m_latestTitle))
+                {
+                    m_latestTitle = title;
+
+                    m_logger.PushLog($"테스트 출력\n{title}");
+                }
+
                 if (title.Contains("[지진속보]"))
                 {
-                    if (string.IsNullOrEmpty(m_latestTitle))
-                    {
-                        m_latestTitle = title;
-
-                        m_logger.PushLog($"테스트 출력\n{title}");
-                    }
-                    else if (m_latestTitle != title)
+                    if (m_latestTitle != title)
                     {
                         m_latestTitle = title;
 
