@@ -367,15 +367,6 @@ namespace EarthquakeTalker
                             NormalValue = Math.Max(NormalValue, MinNormalValue);
                             NormalValue = Math.Min(NormalValue, MaxNormalValue);
                         }
-
-
-                        if (m_msgQueue.Count > 0)
-                        {
-                            m_logger.PushLog(m_msgQueue.Peek());
-
-
-                            return m_msgQueue.Dequeue();
-                        }
                     }
                 }
             }
@@ -386,7 +377,17 @@ namespace EarthquakeTalker
             }
 
 
-            return null;
+            if (m_msgQueue.Count > 0)
+            {
+                m_logger.PushLog(m_msgQueue.Peek());
+
+
+                return m_msgQueue.Dequeue();
+            }
+            else
+            {
+                return null;
+            }
         }
 
         //###########################################################################################################
