@@ -7,10 +7,12 @@ using System.Threading;
 using System.IO;
 using System.Net;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 
 namespace EarthquakeTalker
 {
+    using ChatId = Telegram.Bot.Types.ChatId;
+    using InputOnlineFile = Telegram.Bot.Types.InputFiles.InputOnlineFile;
+
     public class TelegramBot : Talker
     {
         public TelegramBot(string roomID)
@@ -59,12 +61,23 @@ namespace EarthquakeTalker
 
             try
             {
-                if (message.Text.TrimStart().StartsWith("http")
+                if (message.Text.Contains('\n') == false
                     && imageTypes.Any(imgType => message.Text.TrimEnd().EndsWith(imgType)))
                 {
+                    InputOnlineFile photo = null;
+
+                    if (message.Text.TrimStart().StartsWith("http"))
+                    {
+                        photo = new InputOnlineFile(message.Text.Trim());
+                    }
+                    else
+                    {
+                        photo = new InputOnlineFile(File.OpenRead(message.Text));
+                    }
+
                     Client.SendPhotoAsync(
                         chatId: TargetRoom,
-                        photo: message.Text.Trim(),
+                        photo: photo,
                         caption: message.Sender,
                         disableNotification: disableNoti).Wait();
                 }

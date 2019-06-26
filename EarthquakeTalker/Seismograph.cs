@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace EarthquakeTalker
 {
@@ -214,12 +215,16 @@ namespace EarthquakeTalker
                             if (m_waveBuffer.Count > 0)
                             {
                                 // 가장 최근 파형에 트리거 전까지의 데이터 추가
-                                m_waveBuffer.Last().AddWave(subSamples.Take(maxDataIndex));
+                                var lastWave = m_waveBuffer.Last();
+                                lastWave.AddWave(subSamples.Take(maxDataIndex));
+                                lastWave.AddWaveToDraw(subSamples.Take(maxDataIndex));
                             }
 
                             // 새 파형 생성
                             var newWave = new Wave()
                             {
+                                EventTimeUtc = DateTime.UtcNow,
+                                IsAccel = IsAccel,
                                 Length = 1,
                                 MaxValue = groundValue,
                                 TotalValue = groundValue,
@@ -232,11 +237,16 @@ namespace EarthquakeTalker
                             // 트리거 이후의 데이터 추가
                             newWave.AddWave(subSamples.Skip(maxDataIndex + 1));
 
+                            // 파형 그렸을 때 트리거 이전 부분도 보이면 좋으므로 전부 추가
+                            newWave.AddWaveToDraw(subSamples);
+
                             m_waveBuffer.Add(newWave);
                         }
                         else if (m_waveBuffer.Count > 0)
                         {
-                            m_waveBuffer.Last().AddWave(subSamples);
+                            var lastWave = m_waveBuffer.Last();
+                            lastWave.AddWave(subSamples);
+                            lastWave.AddWaveToDraw(subSamples);
                         }
 
 
@@ -342,6 +352,37 @@ namespace EarthquakeTalker
                                     };
 
                                     m_msgQueue.Enqueue(msg);
+
+
+                                    string waveFile = string.Empty;
+
+                                    try
+                                    {
+                                        waveFile = Path.GetTempFileName();
+
+                                        wave.DrawWave(waveFile + ".png", 700, 186, Name, Gain);
+
+                                        msg = new Message()
+                                        {
+                                            Level = Message.Priority.Normal,
+                                            Sender = "해석 : https://neurowhai.tistory.com/356",
+                                            Text = waveFile + ".png",
+                                        };
+
+                                        m_msgQueue.Enqueue(msg);
+                                    }
+                                    catch (Exception exp)
+                                    {
+                                        Console.WriteLine(exp.Message);
+                                        Console.WriteLine(exp.StackTrace);
+                                    }
+                                    finally
+                                    {
+                                        if (!string.IsNullOrEmpty(waveFile))
+                                        {
+                                            File.Delete(waveFile);
+                                        }
+                                    }
                                 }
 
 
