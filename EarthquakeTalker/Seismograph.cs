@@ -362,7 +362,7 @@ namespace EarthquakeTalker
                                         {
                                             Level = Message.Priority.Normal,
                                             Sender = "해석 : https://neurowhai.tistory.com/356",
-                                            Text = waveFile + ".png",
+                                            Text = waveFile,
                                         };
 
                                         m_msgQueue.Enqueue(msg);
@@ -485,8 +485,8 @@ namespace EarthquakeTalker
             }
 
 
-            string timestamp = wave.EventTimeUtc.ToString("yyyy_MM_dd HH_mm_ss");
-            string fileName = Path.Combine(folderPath, $"{Name} {timestamp}.png");
+            string timestamp = wave.EventTimeUtc.ToString("yyyyMMdd HHmmss");
+            string fileName = Path.Combine(folderPath, $"{Name} {timestamp} {wave.Length}.png");
 
             wave.DrawWave(fileName, 700, 186, Name, Gain);
 
