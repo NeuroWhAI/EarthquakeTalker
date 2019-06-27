@@ -146,6 +146,25 @@ namespace EarthquakeTalker
 
                 msg = GetMessageAfter(Guid.Parse(guid));
             }
+            else if (command == "glob")
+            {
+                string path = ReadStringFromStream(stream);
+
+                SendString(stream, "glob");
+                SendString(stream, path);
+
+                if (path.Contains(':') || path.Contains("..")
+                    || !File.Exists(path))
+                {
+                    SendBinary(stream, null);
+                }
+                else
+                {
+                    SendBinary(stream, File.ReadAllBytes(path));
+                }
+
+                return;
+            }
             else
             {
                 return;
@@ -176,6 +195,18 @@ namespace EarthquakeTalker
 
             stream.Write(lenBuffer, 0, lenBuffer.Length);
             stream.Write(strBuffer, 0, strBuffer.Length);
+        }
+
+        private void SendBinary(NetworkStream stream, byte[] bytes)
+        {
+            var lenBuffer = BitConverter.GetBytes(bytes?.Length ?? 0);
+
+            stream.Write(lenBuffer, 0, lenBuffer.Length);
+
+            if (bytes != null)
+            {
+                stream.Write(bytes, 0, bytes.Length);
+            }
         }
 
         private string ReadStringFromStream(NetworkStream stream)
