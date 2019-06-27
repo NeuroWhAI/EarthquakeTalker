@@ -354,13 +354,9 @@ namespace EarthquakeTalker
                                     m_msgQueue.Enqueue(msg);
 
 
-                                    string waveFile = string.Empty;
-
                                     try
                                     {
-                                        waveFile = Path.GetTempFileName();
-
-                                        wave.DrawWave(waveFile + ".png", 700, 186, Name, Gain);
+                                        string waveFile = SaveWaveToFile(wave);
 
                                         msg = new Message()
                                         {
@@ -375,13 +371,6 @@ namespace EarthquakeTalker
                                     {
                                         Console.WriteLine(exp.Message);
                                         Console.WriteLine(exp.StackTrace);
-                                    }
-                                    finally
-                                    {
-                                        if (!string.IsNullOrEmpty(waveFile))
-                                        {
-                                            File.Delete(waveFile);
-                                        }
                                     }
                                 }
 
@@ -477,6 +466,32 @@ namespace EarthquakeTalker
             }
 
             m_prevRawData = data;
+        }
+
+        private string SaveWaveToFile(Wave wave)
+        {
+            var folderPath = "Waves";
+            var folder = new DirectoryInfo(folderPath);
+
+            Directory.CreateDirectory(folderPath);
+
+
+            // 오래된 이미지 삭제.
+            var imgs = folder.GetFiles();
+            if (imgs.Length > 200)
+            {
+                var oldestImg = imgs.OrderBy(info => info.CreationTime).First();
+                File.Delete(oldestImg.FullName);
+            }
+
+
+            string timestamp = wave.EventTimeUtc.ToString("yyyy_MM_dd HH_mm_ss");
+            string fileName = Path.Combine(folderPath, $"{Name} {timestamp}.png");
+
+            wave.DrawWave(fileName, 700, 186, Name, Gain);
+
+
+            return fileName;
         }
     }
 }
