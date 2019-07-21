@@ -72,7 +72,7 @@ namespace EarthquakeTalker
                     SystemFonts.DefaultFont, Brushes.Black,
                     2, height - SystemFonts.DefaultFont.Height - 2);
                 g.DrawString((IsAccel ? "PGA: " : "PGV: ") + MaxValue,
-                    SystemFonts.DefaultFont, Brushes.Black, 516, 2);
+                    SystemFonts.DefaultFont, Brushes.Black, width - 184, 2);
 
 
                 if (m_totalWave.Count >= 2)
