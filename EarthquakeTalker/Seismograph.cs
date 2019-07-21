@@ -488,7 +488,7 @@ namespace EarthquakeTalker
             string timestamp = wave.EventTimeUtc.ToString("yyyyMMdd HHmmss");
             string fileName = Path.Combine(folderPath, $"{Name} {timestamp} {wave.Length}.png");
 
-            wave.DrawWave(fileName, 700, 186, Name, Gain);
+            wave.DrawWave(fileName, 550, 186, Name, Gain);
 
 
             return fileName;
