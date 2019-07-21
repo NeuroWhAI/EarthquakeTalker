@@ -24,6 +24,9 @@ namespace EarthquakeTalker
         public IEnumerable<double> Buffer
         { get { return m_wave; } }
 
+        public IEnumerable<double> TotalBuffer
+        { get { return m_totalWave; } }
+
         public int BufferLength
         { get { return m_wave.Count; } }
 
@@ -32,9 +35,6 @@ namespace EarthquakeTalker
 
         public bool IsDanger
         { get; set; } = false;
-
-        public double TotalValue
-        { get; set; } = 0;
 
         private List<double> m_wave = new List<double>();
         private List<double> m_totalWave = new List<double>();

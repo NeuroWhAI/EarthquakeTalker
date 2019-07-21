@@ -88,6 +88,8 @@ namespace EarthquakeTalker
 
         private Queue<Message> m_msgQueue = new Queue<Message>();
 
+        private Wave m_prevWave = null;
+
         //###########################################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
@@ -217,7 +219,6 @@ namespace EarthquakeTalker
                                 // 가장 최근 파형에 트리거 전까지의 데이터 추가
                                 var lastWave = m_waveBuffer.Last();
                                 lastWave.AddWave(subSamples.Take(maxDataIndex));
-                                lastWave.AddWaveToDraw(subSamples.Take(maxDataIndex));
                             }
 
                             // 새 파형 생성
@@ -227,8 +228,17 @@ namespace EarthquakeTalker
                                 IsAccel = IsAccel,
                                 Length = 1,
                                 MaxValue = groundValue,
-                                TotalValue = groundValue,
                             };
+
+                            // 이어지는 이전 파형 정보가 있다면 데이터 부분 이관.
+                            if (m_prevWave != null)
+                            {
+                                newWave.EventTimeUtc = m_prevWave.EventTimeUtc;
+                                newWave.Length += m_prevWave.Length;
+                                newWave.AddWaveToDraw(m_prevWave.TotalBuffer);
+                            }
+
+                            m_prevWave = newWave;
 
                             // 초기 데이터가 없어서 분석이 종료되는 불상사 방지
                             // 어차피 최대값 풀링 때문에 0은 무시된다.
@@ -247,6 +257,61 @@ namespace EarthquakeTalker
                             var lastWave = m_waveBuffer.Last();
                             lastWave.AddWave(subSamples);
                             lastWave.AddWaveToDraw(subSamples);
+                        }
+                        else if (m_prevWave != null)
+                        {
+                            // 최종 파형의 분석이 완료됨.
+
+                            var wave = m_prevWave;
+                            m_prevWave = null;
+
+                            double waveTime = (double)wave.Length / SamplingRate;
+
+                            if (waveTime >= MinDangerWaveTime)
+                            {
+                                int mmi = 0;
+                                if (IsAccel)
+                                {
+                                    mmi = Earthquake.ConvertPgaToMMI(wave.MaxValue);
+                                }
+                                else
+                                {
+                                    mmi = Earthquake.ConvertPgvToMMI(wave.MaxValue);
+                                }
+
+                                var msg = new Message()
+                                {
+                                    Level = Message.Priority.Normal,
+                                    Sender = Channel + " " + Network + "_" + Station + " Station",
+                                    Text = $@"{Name} {TypeText}의 진동에 관한 최종 분석 결과.
+수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
+진도 : {Earthquake.MMIToString(mmi)}
+지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
+지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
+                                };
+
+                                m_msgQueue.Enqueue(msg);
+
+
+                                try
+                                {
+                                    string waveFile = SaveWaveToFile(wave);
+
+                                    msg = new Message()
+                                    {
+                                        Level = Message.Priority.Normal,
+                                        Sender = "해석 : https://neurowhai.tistory.com/356",
+                                        Text = waveFile,
+                                    };
+
+                                    m_msgQueue.Enqueue(msg);
+                                }
+                                catch (Exception exp)
+                                {
+                                    Console.WriteLine(exp.Message);
+                                    Console.WriteLine(exp.StackTrace);
+                                }
+                            }
                         }
 
 
@@ -276,7 +341,6 @@ namespace EarthquakeTalker
                                 }
 
                                 ++wave.Length;
-                                wave.TotalValue += poolingValue;
                             }
 
                             // 마지막 파형이 아니라면
@@ -315,7 +379,6 @@ namespace EarthquakeTalker
 수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
 진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
-진동 수치 : {string.Format("{0:F3}", wave.TotalValue)} 이상
 
 {Earthquake.GetKnowHowFromMMI(mmi)}",
                                 };
@@ -327,54 +390,6 @@ namespace EarthquakeTalker
                             // 분석이 종료되었으면
                             if (wave.BufferLength <= 0)
                             {
-                                if (waveTime >= MinDangerWaveTime)
-                                {
-                                    int mmi = 0;
-                                    if (IsAccel)
-                                    {
-                                        mmi = Earthquake.ConvertPgaToMMI(wave.MaxValue);
-                                    }
-                                    else
-                                    {
-                                        mmi = Earthquake.ConvertPgvToMMI(wave.MaxValue);
-                                    }
-
-                                    var msg = new Message()
-                                    {
-                                        Level = Message.Priority.Normal,
-                                        Sender = Channel + " " + Network + "_" + Station + " Station",
-                                        Text = $@"{Name} {TypeText}의 진동에 관한 최종 분석 결과.
-수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
-진도 : {Earthquake.MMIToString(mmi)}
-지속시간 : 약 {string.Format("{0:F3}", waveTime)}초
-진동 수치 : {string.Format("{0:F3}", wave.TotalValue)}
-지속시간이 매우 짧은 경우 오류일 확률이 높습니다.",
-                                    };
-
-                                    m_msgQueue.Enqueue(msg);
-
-
-                                    try
-                                    {
-                                        string waveFile = SaveWaveToFile(wave);
-
-                                        msg = new Message()
-                                        {
-                                            Level = Message.Priority.Normal,
-                                            Sender = "해석 : https://neurowhai.tistory.com/356",
-                                            Text = waveFile,
-                                        };
-
-                                        m_msgQueue.Enqueue(msg);
-                                    }
-                                    catch (Exception exp)
-                                    {
-                                        Console.WriteLine(exp.Message);
-                                        Console.WriteLine(exp.StackTrace);
-                                    }
-                                }
-
-
                                 // 파형 제거
                                 m_waveBuffer.RemoveAt(w);
                                 --w;
