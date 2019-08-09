@@ -137,7 +137,11 @@ namespace EarthquakeTalker
 
             /// 메세지 처리자
             MultipleTalker talker = new MultipleTalker();
+#if DEBUG
+            talker.AddTalker(new TelegramBot("@neurowhai_test_bot"));
+#else
             talker.AddTalker(new TelegramBot("@neurowhai_earthquake_channel"));
+#endif
             talker.AddTalker(new MessageServer(msgServerPort, "messages.dat"));
 
             /// 지진계
