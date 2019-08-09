@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace EarthquakeTalker
 {
@@ -65,12 +66,29 @@ namespace EarthquakeTalker
                         m_logger.PushLog(noti);
 
 
-                        return new Message()
+                        var msg = new Message()
                         {
                             Level = Message.Priority.Normal,
                             Sender = "기상청 미소지진 안내",
                             Text = noti,
                         };
+
+
+                        // 규모 추출.
+                        var scaleMatch = Regex.Match(noti, @"규모\s*:\s*(\d+(?:\.\d+)?)");
+
+                        if (scaleMatch.Success && scaleMatch.Groups.Count >= 2
+                            && double.TryParse(scaleMatch.Groups[1].Value, out double scale))
+                        {
+                            if (scale > 0.2)
+                            {
+                                return msg;
+                            }
+                        }
+                        else
+                        {
+                            return msg;
+                        }
                     }
                     else
                     {
