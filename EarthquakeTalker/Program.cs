@@ -157,7 +157,7 @@ namespace EarthquakeTalker
 
             /// 지진계를 포함한 메세지 생성자
             List<Worker> workerList = new List<Worker>();
-            //workerList.AddRange(seismographList);
+            workerList.AddRange(seismographList);
             workerList.Add(new UserWatcher("KMA_earthquake", new KMAEarthquakeFormatter()));
             workerList.Add(new KmaHome());
             workerList.Add(new KmaMicro());
