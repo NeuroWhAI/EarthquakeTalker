@@ -149,7 +149,7 @@ namespace EarthquakeTalker
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천")
             { DangerValue = 0.01, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "JP", "JTU", 1.000000e+09 / 100, "대마도")
-            { DangerValue = 0.07, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
+            { DangerValue = 0.07, DangerWaveTime = 0.3, MinDangerWaveTime = 0.1, IsAccel = false });
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "BHZ", "KG", "TJN", 6.327240e+08 / 100, "대전")
             { DangerValue = 0.01, DangerWaveTime = 0.01, MinDangerWaveTime = 0.005, IsAccel = false });
             seismographList.Add(new WinstonSeismograph(winstonIp, winstonPort, "00", "EHZ", "AM", "R3E8F", 3.36e+08 / 100, "포항")
