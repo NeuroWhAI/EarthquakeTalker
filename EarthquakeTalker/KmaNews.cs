@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net.Http;
+using System.Net;
+using System.IO;
 
 namespace EarthquakeTalker
 {
@@ -16,10 +18,9 @@ namespace EarthquakeTalker
 
         //#############################################################################################
 
-        protected string m_latestTitle = string.Empty;
-        protected string m_latestTime = string.Empty;
-        protected bool m_notiMode = true; // 이전 시간 정보를 얻기 위해 true로 설정.
-        protected DateTime m_notiTimeLimit = DateTime.MinValue;
+        protected string m_latestTitle = null;
+        protected string m_latestEqk = null;
+        protected DateTimeOffset m_notiTimeLimit;
 
         protected HttpClient m_client = new HttpClient();
 
@@ -27,64 +28,102 @@ namespace EarthquakeTalker
 
         protected override void BeforeStart(MultipleTalker talker)
         {
-            this.JobDelay = TimeSpan.FromSeconds(6.0);
+            this.JobDelay = TimeSpan.FromSeconds(3.0);
+
+            m_latestTitle = null;
         }
 
         protected override void AfterStop(MultipleTalker talker)
         {
-            m_latestTitle = string.Empty;
+            
         }
 
         protected override Message OnWork(Action<Message> sender)
         {
             try
             {
-                var kmaNoti = m_client.GetByteArrayAsync(@"http://www.weather.go.kr/weather/earthquake_volcano/report.jsp");
-
-                kmaNoti.Wait();
-
-
-                var byteArray = kmaNoti.Result.ToArray();
-                var encoding = Encoding.GetEncoding(51949/*euc-kr*/);
-                var html = encoding.GetString(byteArray, 0, byteArray.Length);
-
                 int index = -1;
                 int endIndex = -1;
 
+                var eqkList = m_client.GetStringAsync(@"https://www.weather.go.kr/w/wnuri-eqk-vol/rest/eqk/list.do?eqkType=d");
+                string eqkListJson = eqkList.Result;
 
-                if (m_notiMode)
+                if (eqkListJson.Contains("eqk_web"))
                 {
-                    if (DateTime.UtcNow > m_notiTimeLimit)
+                    index = eqkListJson.IndexOf("[지진속보]");
+
+                    if (index >= 0)
                     {
-                        m_notiMode = false;
+                        index = eqkListJson.LastIndexOf('"', index);
+                        endIndex = eqkListJson.IndexOf('"', index + 1);
+
+                        if (index >= 0 && endIndex > index)
+                        {
+                            string eqkTitle = eqkListJson.Substring(index + 1, endIndex - index - 1).Trim();
+
+                            if (m_latestTitle == null)
+                            {
+                                m_latestTitle = eqkTitle;
+                                m_logger.PushLog($"테스트 출력\n\"{eqkTitle}\"");
+                            }
+                            else if (m_latestTitle != eqkTitle)
+                            {
+                                m_latestTitle = eqkTitle;
+                                m_notiTimeLimit = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30.0);
+
+                                // TODO: 가장 앞에 있는 정보를 가져오게 해두었는데 개선 필요함.
+                                index = eqkListJson.IndexOf("eqk_web");
+                                index = eqkListJson.LastIndexOf('"', index);
+                                endIndex = eqkListJson.IndexOf('"', index + 1);
+
+                                m_latestEqk = eqkListJson.Substring(index + 1, endIndex - index - 1);
+                            }
+                        }
                     }
+                    else
+                    {
+                        m_latestTitle = string.Empty;
+                    }
+
+                    Console.Write('N');
+                }
+
+
+                index = -1;
+                endIndex = -1;
+
+                if (m_latestEqk != null && DateTimeOffset.UtcNow < m_notiTimeLimit)
+                {
+                    var eqkInfo = m_client.GetStringAsync(@"https://www.weather.go.kr/w/wnuri-eqk-vol/eqk/report.do?eqkType=a&eqk=" + m_latestEqk);
+                    string eqkInfoHtml = eqkInfo.Result;
 
 
                     string time;
                     string scale;
                     string intensity;
                     string location;
+                    string mapUrl;
 
 
-                    index = html.IndexOf("발생시각");
-
-                    if (index < 0)
-                    {
-                        return null;
-                    }
-
-                    index = html.IndexOf("<td", index + 1);
+                    index = eqkInfoHtml.IndexOf("발생시각");
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf(">", index + 1);
+                    index = eqkInfoHtml.IndexOf("<td", index + 1);
 
-                    endIndex = html.IndexOf("</td", index + 1);
+                    if (index < 0)
+                    {
+                        return null;
+                    }
 
-                    time = html.Substring(index + 1, endIndex - index - 1);
+                    index = eqkInfoHtml.IndexOf(">", index + 1);
+
+                    endIndex = eqkInfoHtml.IndexOf("</td", index + 1);
+
+                    time = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
 
                     if (!time.Contains("년"))
                     {
@@ -93,68 +132,53 @@ namespace EarthquakeTalker
 
                     time = Util.ConvertHtmlToText(time).Trim();
 
-                    if (string.IsNullOrEmpty(m_latestTime))
-                    {
-                        m_latestTime = time;
 
-                        m_notiMode = false;
-
-                        m_logger.PushLog($"테스트 출력\n{time}");
-
-                        return null;
-                    }
-                    else if (time == m_latestTime)
-                    {
-                        return null;
-                    }
-
-
-                    index = html.IndexOf("규모", index + 1);
+                    index = eqkInfoHtml.IndexOf("규모", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf("<td", index + 1);
+                    index = eqkInfoHtml.IndexOf("<td", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf(">", index + 1);
+                    index = eqkInfoHtml.IndexOf(">", index + 1);
 
-                    endIndex = html.IndexOf("</td", index + 1);
+                    endIndex = eqkInfoHtml.IndexOf("</td", index + 1);
 
-                    scale = html.Substring(index + 1, endIndex - index - 1);
+                    scale = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
                     scale = Util.ConvertHtmlToText(scale).Trim();
 
-                    if (!double.TryParse(scale, out double _))
+                    if (string.IsNullOrWhiteSpace(scale))
                     {
                         return null;
                     }
 
 
-                    index = html.IndexOf("진도", index + 1);
+                    index = eqkInfoHtml.IndexOf("진도", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf("<td", index + 1);
+                    index = eqkInfoHtml.IndexOf("<td", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf(">", index + 1);
+                    index = eqkInfoHtml.IndexOf(">", index + 1);
 
-                    endIndex = html.IndexOf("</td", index + 1);
+                    endIndex = eqkInfoHtml.IndexOf("</td", index + 1);
 
-                    intensity = html.Substring(index + 1, endIndex - index - 1);
+                    intensity = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
                     intensity = Util.ConvertHtmlToText(intensity).Trim();
 
                     if (string.IsNullOrWhiteSpace(intensity))
@@ -163,25 +187,25 @@ namespace EarthquakeTalker
                     }
 
 
-                    index = html.IndexOf("위치", index + 1);
+                    index = eqkInfoHtml.IndexOf("위치", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf("<td", index + 1);
+                    index = eqkInfoHtml.IndexOf("<td", index + 1);
 
                     if (index < 0)
                     {
                         return null;
                     }
 
-                    index = html.IndexOf(">", index + 1);
+                    index = eqkInfoHtml.IndexOf(">", index + 1);
 
-                    endIndex = html.IndexOf("</td", index + 1);
+                    endIndex = eqkInfoHtml.IndexOf("</td", index + 1);
 
-                    location = html.Substring(index + 1, endIndex - index - 1);
+                    location = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
                     location = Util.ConvertHtmlToText(location).Trim();
 
                     if (string.IsNullOrWhiteSpace(location))
@@ -190,8 +214,21 @@ namespace EarthquakeTalker
                     }
 
 
-                    m_notiMode = false;
-                    m_latestTime = time;
+                    index = eqkInfoHtml.IndexOf("DATA/EQK/INTENSITY", index + 1);
+
+                    if (index < 0)
+                    {
+                        return null;
+                    }
+
+                    index = eqkInfoHtml.LastIndexOf('"', index);
+                    endIndex = eqkInfoHtml.IndexOf('"', index + 1);
+
+                    mapUrl = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
+
+
+                    // 속보 파싱 중지.
+                    m_latestEqk = null;
 
 
                     var buffer = new StringBuilder();
@@ -202,69 +239,26 @@ namespace EarthquakeTalker
                     buffer.AppendLine($"추정위치 : {location}");
                     buffer.Append("수동으로 분석한 정보는 추가 발표될 예정입니다.");
 
-
-                    return new Message()
+                    sender(new Message()
                     {
                         Level = Message.Priority.Critical,
                         Sender = "기상청 지진속보",
                         Text = buffer.ToString(),
-                    };
-                }
+                    });
 
 
-                index = html.IndexOf("earthquake_report");
-
-                if (index < 0)
-                {
-                    return null;
-                }
-
-                index = html.IndexOf(".xml", index + 1);
-
-                if (index < 0)
-                {
-                    return null;
-                }
-
-                index = html.IndexOf(">", index + 1);
-
-                if (index < 0)
-                {
-                    return null;
-                }
-
-                endIndex = html.IndexOf("<", index + 1);
-
-                if (endIndex < 0)
-                {
-                    return null;
-                }
-
-                string title = html.Substring(index + 1, endIndex - index - 1);
-                title = Util.ConvertHtmlToText(title);
-
-                if (string.IsNullOrEmpty(m_latestTitle))
-                {
-                    m_latestTitle = title;
-
-                    m_logger.PushLog($"테스트 출력\n{title}");
-                }
-
-                if (title.Contains("[지진속보]"))
-                {
-                    if (m_latestTitle != title)
+                    if (!string.IsNullOrWhiteSpace(mapUrl))
                     {
-                        m_latestTitle = title;
+                        mapUrl = "http://www.weather.go.kr" + mapUrl;
 
-                        m_notiMode = true;
-                        m_notiTimeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(3.0);
-
-                        m_logger.PushLog(title);
+                        sender(new Message()
+                        {
+                            Level = Message.Priority.Normal,
+                            Sender = "기상청 시도별 진도 설명 이미지",
+                            Text = mapUrl,
+                        });
                     }
                 }
-
-
-                Console.Write('N');
             }
             catch (Exception exp)
             {
@@ -286,7 +280,7 @@ namespace EarthquakeTalker
                     m_client.Dispose();
                 }
 
-                Thread.Sleep(5000);
+                Thread.Sleep(6000);
 
 
                 m_client = new HttpClient();
