@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Net.Http;
+using System.Threading.Tasks;
 using System.Net;
 using System.IO;
-using System.Web;
+using System.Drawing;
 
 namespace EarthquakeTalker
 {
@@ -16,26 +16,39 @@ namespace EarthquakeTalker
         private const int MaxEqkStrLen = 60;
         private const int MaxEqkInfoLen = 120;
         private static string[] AreaNames = { "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주" };
+        private static string[] MmiColors = { "#FFFFFF", "#FFFFFF", "#A0E6FF", "#92D050", "#FFFF00", "#FFC000", "#FF0000", "#A32777", "#632523", "#4C2600", "#000000" };
 
         //#############################################################################################
 
         public KmaPews()
         {
-            
+            m_mmiBrushes = MmiColors
+                .Select((color) => new SolidBrush(HexCodeToColor(color)))
+                .ToArray();
         }
 
         //#############################################################################################
+
+        private readonly string DataPath = "https://www.weather.go.kr/pews/data";
 
         private string m_prevBinTime = string.Empty;
         private double m_tide = 1000;
         private DateTime m_nextSyncTime = DateTime.MinValue;
         private int m_prevPhase = 0;
 
+        private string m_gridEqkId = null;
+        private Image m_gridMap = null;
+        private Brush[] m_mmiBrushes = null;
+        private string m_gridFilePath = null;
+        private readonly object m_syncGridPath = new object();
+
         //#############################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
         {
             this.JobDelay = TimeSpan.FromSeconds(0.2);
+
+            m_gridMap = Image.FromFile("map.png");
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -44,10 +57,50 @@ namespace EarthquakeTalker
             m_tide = 1000;
             m_nextSyncTime = DateTime.MinValue;
             m_prevPhase = 0;
+
+            m_gridEqkId = null;
+            m_gridMap?.Dispose();
+            m_gridMap = null;
+            foreach (var brush in m_mmiBrushes)
+            {
+                brush.Dispose();
+            }
+            m_mmiBrushes = null;
+            lock (m_syncGridPath)
+            {
+                m_gridFilePath = null;
+            }
         }
 
         protected override Message OnWork(Action<Message> sender)
         {
+            try
+            {
+                // 예약된 진도 그리드 파일이 있다면 전송.
+
+                string filePath;
+                lock (m_syncGridPath)
+                {
+                    filePath = m_gridFilePath;
+                    m_gridFilePath = null;
+                }
+
+                if (filePath != null)
+                {
+                    sender(new Message()
+                    {
+                        Level = Message.Priority.Normal,
+                        Sender = "기상청 실시간 지진감시",
+                        Text = filePath,
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+
             try
             {
                 string binTime = DateTime.UtcNow.AddMilliseconds(-m_tide).ToString("yyyyMMddHHmmss");
@@ -57,7 +110,7 @@ namespace EarthquakeTalker
                 }
                 m_prevBinTime = binTime;
 
-                string url = $"https://www.weather.go.kr/pews/data/{binTime}.b";
+                string url = $"{DataPath}/{binTime}.b";
 
 
                 byte[] bytes = null;
@@ -122,6 +175,27 @@ namespace EarthquakeTalker
                     {
                         var infoBytes = bytes.Skip(bytes.Length - MaxEqkStrLen).ToArray();
                         msg = HandleEqk(phase, body, infoBytes);
+
+                        if (m_gridEqkId != null)
+                        {
+                            string eqkId = m_gridEqkId;
+                            m_gridEqkId = null;
+
+                            Task.Factory.StartNew(async () =>
+                            {
+                                await Task.Delay(200);
+
+                                try
+                                {
+                                    await RequestGridData(eqkId, phase);
+                                }
+                                catch (Exception)
+                                {
+                                    // 재시도.
+                                    m_gridEqkId = eqkId;
+                                }
+                            });
+                        }
                     }
 
                     m_prevPhase = phase;
@@ -155,6 +229,23 @@ namespace EarthquakeTalker
         }
 
         //#############################################################################################
+
+        private Color HexCodeToColor(string code)
+        {
+            if (code.First() != '#')
+            {
+                throw new ArgumentException();
+            }
+
+            code = code.Substring(1);
+
+            if (code.Length == 6)
+            {
+                code = "FF" + code;
+            }
+
+            return Color.FromArgb(Convert.ToInt32(code, 16));
+        }
 
         private string ByteToBinStr(byte val)
         {
@@ -191,12 +282,14 @@ namespace EarthquakeTalker
 
             if (phase > m_prevPhase)
             {
+                m_gridEqkId = eqkId;
+
                 if (phase == 2)
                 {
                     // 발생 시각, 규모, 최대 진도, 문구 정도는 부정확할 수 있어도 첫 정보에 포함되는 듯.
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("(시범) 조기경보가 발표되었습니다.");
+                    buffer.AppendLine("조기경보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
                     buffer.AppendLine($"추정 규모 : {eqkMag.ToString("N1")}");
@@ -218,7 +311,7 @@ namespace EarthquakeTalker
                     // 분석 완료된 것 같고 깊이, 영향 지역이 나옴.
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("(시범) 지진정보가 발표되었습니다.");
+                    buffer.AppendLine("지진정보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
                     buffer.AppendLine($"규모 : {eqkMag.ToString("N1")}");
@@ -236,6 +329,119 @@ namespace EarthquakeTalker
             }
 
             return msg;
+        }
+
+        private async Task RequestGridData(string eqkId, int phase)
+        {
+            string url = $"{DataPath}/{eqkId}.{(phase == 2 ? 'e' : 'i')}";
+
+            byte[] bytes = null;
+
+            try
+            {
+                using (var client = new WebClient())
+                {
+                    client.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+                    bytes = await client.DownloadDataTaskAsync(url);
+                }
+            }
+            catch (Exception)
+            {
+                bytes = null;
+            }
+
+            if (bytes == null || bytes.Length <= 0)
+            {
+                // 나중에 재시도.
+                m_gridEqkId = eqkId;
+                return;
+            }
+
+            var gridData = new List<int>();
+            foreach (byte b in bytes)
+            {
+                string bStr = ByteToBinStr(b);
+                gridData.Add(Convert.ToInt32(bStr.Substring(0, 4), 2));
+                gridData.Add(Convert.ToInt32(bStr.Substring(4, 4), 2));
+            }
+
+            using (var canvas = new Bitmap(m_gridMap.Width, m_gridMap.Height))
+            using (var g = Graphics.FromImage(canvas))
+            using (var brhBack = new SolidBrush(Color.FromArgb(211, 211, 211)))
+            {
+                // Background
+                g.FillRectangle(brhBack, 0, 0, canvas.Width, canvas.Height);
+
+                // Intensity
+                var mmiIterator = gridData.GetEnumerator();
+                bool isEnd = false;
+                for (double i = 38.85; i > 33; i -= 0.05)
+                {
+                    for (double j = 124.5; j < 132.05; j += 0.05)
+                    {
+                        if (!mmiIterator.MoveNext())
+                        {
+                            isEnd = true;
+                            break;
+                        }
+
+                        int mmi = mmiIterator.Current;
+
+                        if (mmi >= 0 && mmi < m_mmiBrushes.Length)
+                        {
+                            var brush = m_mmiBrushes[mmi];
+                            float x = (float)((j - 124.5) * 113 - 4);
+                            float y = (float)((38.9 - i) * 138.4 - 7);
+
+                            g.FillRectangle(brush, x, y, 8, 8);
+                        }
+                    }
+
+                    if (isEnd)
+                    {
+                        break;
+                    }
+                }
+
+                // Map
+                g.DrawImage(m_gridMap, 0, 0);
+
+                g.Flush();
+
+                string filePath = SaveGridToFile(canvas, eqkId);
+
+                lock (m_syncGridPath)
+                {
+                    m_gridFilePath = filePath;
+                }
+            }
+        }
+
+        private string SaveGridToFile(Bitmap canvas, string eqkId)
+        {
+            var folderPath = "Grid";
+            var folder = new DirectoryInfo(folderPath);
+
+            Directory.CreateDirectory(folderPath);
+
+
+            // 오래된 이미지 삭제.
+            var imgs = folder.GetFiles();
+            if (imgs.Length > 100)
+            {
+                var oldestImg = imgs.OrderBy(info => info.CreationTime).First();
+                File.Delete(oldestImg.FullName);
+            }
+
+
+            string timestamp = DateTime.UtcNow.ToString("yyyyMMdd HHmmss");
+            string fileName = Path.Combine(folderPath, $"{timestamp} {eqkId}.png");
+
+            canvas.Save(fileName);
+
+
+            return fileName;
         }
     }
 }
