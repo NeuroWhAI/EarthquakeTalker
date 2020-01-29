@@ -406,7 +406,8 @@ namespace EarthquakeTalker
                 }
 
                 // Map
-                g.DrawImage(m_gridMap, 0, 0);
+                // DPI 상관없이 그리기 위한 버전 사용.
+                g.DrawImage(m_gridMap, new Rectangle(0, 0, m_gridMap.Width, m_gridMap.Height));
 
                 g.Flush();
 
