@@ -315,7 +315,8 @@ namespace EarthquakeTalker
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
                     buffer.AppendLine($"규모 : {eqkMag.ToString("N1")}");
-                    buffer.AppendLine($"깊이 : {eqkDep} km");
+                    buffer.Append($"깊이 : ");
+                    buffer.AppendLine((eqkDep == 0) ? "-" : $"{eqkDep} km");
                     buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(eqkIntens)}({eqkIntens})");
                     buffer.AppendLine($"영향 지역 : {string.Join(", ", eqkMaxArea)}");
 
