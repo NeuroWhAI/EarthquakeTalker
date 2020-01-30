@@ -174,7 +174,7 @@ namespace EarthquakeTalker
                     if (phase > 1)
                     {
                         var infoBytes = bytes.Skip(bytes.Length - MaxEqkStrLen).ToArray();
-                        msg = HandleEqk(phase, body, infoBytes);
+                        msg = HandleEqk(phase, body, infoBytes, out var epicenter);
 
                         if (m_gridEqkId != null)
                         {
@@ -187,7 +187,7 @@ namespace EarthquakeTalker
 
                                 try
                                 {
-                                    await RequestGridData(eqkId, phase);
+                                    await RequestGridData(eqkId, phase, epicenter);
                                 }
                                 catch (Exception)
                                 {
@@ -252,7 +252,7 @@ namespace EarthquakeTalker
             return Convert.ToString(val, 2).PadLeft(8, '0');
         }
 
-        private Message HandleEqk(int phase, string body, byte[] infoBytes)
+        private Message HandleEqk(int phase, string body, byte[] infoBytes, out PointF epicenter)
         {
             string data = body.Substring(body.Length - (MaxEqkStrLen * 8 + MaxEqkInfoLen));
             string eqkStr = WebUtility.UrlDecode(Encoding.UTF8.GetString(infoBytes));
@@ -277,6 +277,10 @@ namespace EarthquakeTalker
                     }
                 }
             }
+
+            epicenter = new PointF(
+                (float)((origLon - 124.5) * 113 - 4),
+                (float)((38.9 - origLat) * 138.4 - 7));
 
             Message msg = null;
 
@@ -332,7 +336,7 @@ namespace EarthquakeTalker
             return msg;
         }
 
-        private async Task RequestGridData(string eqkId, int phase)
+        private async Task RequestGridData(string eqkId, int phase, PointF epicenter)
         {
             string url = $"{DataPath}/{eqkId}.{(phase == 2 ? 'e' : 'i')}";
 
@@ -408,6 +412,15 @@ namespace EarthquakeTalker
                 // Map
                 // DPI 상관없이 그리기 위한 버전 사용.
                 g.DrawImage(m_gridMap, new Rectangle(0, 0, m_gridMap.Width, m_gridMap.Height));
+
+                // Epicenter
+                if (epicenter.X > -32 && epicenter.X < canvas.Width + 32
+                    && epicenter.Y > -32 && epicenter.Y < canvas.Height + 32)
+                {
+                    g.FillEllipse(Brushes.Red, epicenter.X - 4, epicenter.Y - 4, 8, 8);
+                    g.DrawEllipse(Pens.Red, epicenter.X - 8, epicenter.Y - 8, 16, 16);
+                    g.DrawEllipse(Pens.Red, epicenter.X - 12, epicenter.Y - 12, 24, 24);
+                }
 
                 g.Flush();
 
