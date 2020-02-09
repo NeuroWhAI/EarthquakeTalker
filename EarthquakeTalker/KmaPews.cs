@@ -35,6 +35,7 @@ namespace EarthquakeTalker
         private double m_tide = 1000;
         private DateTime m_nextSyncTime = DateTime.MinValue;
         private int m_prevPhase = 0;
+        private string m_prevAlarmId = string.Empty;
 
         private string m_gridEqkId = null;
         private Image m_gridMap = null;
@@ -57,6 +58,7 @@ namespace EarthquakeTalker
             m_tide = 1000;
             m_nextSyncTime = DateTime.MinValue;
             m_prevPhase = 0;
+            m_prevAlarmId = string.Empty;
 
             m_gridEqkId = null;
             m_gridMap?.Dispose();
@@ -263,7 +265,7 @@ namespace EarthquakeTalker
             double eqkDep = (double)Convert.ToInt32(data.Substring(27, 10), 2) / 10;
             int eqkUnixTime = Convert.ToInt32(data.Substring(37, 32), 2);
             var eqkTime = DateTimeOffset.FromUnixTimeSeconds(eqkUnixTime + 9 * 3600).AddHours(9.0);
-            string eqkId = "20" + Convert.ToInt32(data.Substring(69, 26), 2);
+            string eqkId = "20" + Convert.ToInt32(data.Substring(69, 26), 2); // TODO: 22세기가 되면 "20"이 아니게 되는건가?
             int eqkIntens = Convert.ToInt32(data.Substring(95, 4), 2);
             string eqkMaxAreaStr = data.Substring(99, 17);
             var eqkMaxArea = new List<string>();
@@ -282,9 +284,11 @@ namespace EarthquakeTalker
                 (float)((origLon - 124.5) * 113 - 4),
                 (float)((38.9 - origLat) * 138.4 - 7));
 
+            string alarmId = eqkId + phase;
             Message msg = null;
 
-            if (phase > m_prevPhase)
+            // 페이즈가 넘어갔으며 이전에 전송한 것과 동일한 알람이 아니라면.
+            if (phase > m_prevPhase && alarmId != m_prevAlarmId)
             {
                 m_gridEqkId = eqkId;
 
@@ -302,6 +306,8 @@ namespace EarthquakeTalker
                     buffer.AppendLine("수동으로 분석한 정보는 추후 발표될 예정입니다.");
                     buffer.AppendLine();
                     buffer.Append(Earthquake.GetKnowHowFromMMI(eqkIntens));
+
+                    m_prevAlarmId = alarmId;
 
                     return new Message()
                     {
@@ -323,6 +329,8 @@ namespace EarthquakeTalker
                     buffer.AppendLine((eqkDep == 0) ? "-" : $"{eqkDep} km");
                     buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(eqkIntens)}({eqkIntens})");
                     buffer.AppendLine($"영향 지역 : {string.Join(", ", eqkMaxArea)}");
+
+                    m_prevAlarmId = alarmId;
 
                     return new Message()
                     {
