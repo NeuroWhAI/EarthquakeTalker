@@ -425,9 +425,9 @@ namespace EarthquakeTalker
                 if (epicenter.X > -32 && epicenter.X < canvas.Width + 32
                     && epicenter.Y > -32 && epicenter.Y < canvas.Height + 32)
                 {
-                    g.FillEllipse(Brushes.Red, epicenter.X - 4, epicenter.Y - 4, 8, 8);
-                    g.DrawEllipse(Pens.Red, epicenter.X - 8, epicenter.Y - 8, 16, 16);
-                    g.DrawEllipse(Pens.Red, epicenter.X - 12, epicenter.Y - 12, 24, 24);
+                    g.FillEllipse(Brushes.Blue, epicenter.X - 4, epicenter.Y - 4, 8, 8);
+                    g.DrawEllipse(Pens.Blue, epicenter.X - 8, epicenter.Y - 8, 16, 16);
+                    g.DrawEllipse(Pens.Blue, epicenter.X - 12, epicenter.Y - 12, 24, 24);
                 }
 
                 g.Flush();
