@@ -128,7 +128,7 @@ namespace EarthquakeTalker
 
                                 var msg = new StringBuilder();
                                 msg.AppendLine(warningTime);
-                                msg.AppendLine("지진조기경보가 발표되었습니다.");
+                                msg.AppendLine("⚠️ 지진조기경보가 발표되었습니다.");
                                 msg.AppendLine("규모 : " + magnitude);
                                 msg.AppendLine("지역 : " + location);
                                 msg.AppendLine("진앙 : " + mapLink.ToString());

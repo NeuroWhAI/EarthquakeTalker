@@ -120,8 +120,7 @@ namespace EarthquakeTalker
                             var latestTimeInKor = latestStatus.CreatedAt + TimeSpan.FromHours(9.0);
 
                             StringBuilder msg = new StringBuilder();
-                            msg.AppendLine(latestTimeInKor.ToShortDateString() + " " + latestTimeInKor.ToShortTimeString());
-                            msg.Append("트위터 ");
+                            msg.Append("⚠️ 트위터 ");
                             msg.Append(this.Keyword);
                             msg.Append(" 관련 트윗 ");
                             msg.Append(this.MaxStatusCount);

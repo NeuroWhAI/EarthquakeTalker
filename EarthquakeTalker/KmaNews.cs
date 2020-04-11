@@ -232,7 +232,7 @@ namespace EarthquakeTalker
 
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("지진속보가 발표되었습니다.");
+                    buffer.AppendLine("⚠️ 지진속보가 발표되었습니다.");
                     buffer.AppendLine($"발생시각 : {time}");
                     buffer.AppendLine($"추정규모 : {scale}");
                     buffer.AppendLine($"예상진도 : {intensity}");

@@ -297,7 +297,7 @@ namespace EarthquakeTalker
                     // 발생 시각, 규모, 최대 진도, 문구 정도는 부정확할 수 있어도 첫 정보에 포함되는 듯.
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("조기경보가 발표되었습니다.");
+                    buffer.AppendLine("⚠️ 조기경보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
                     buffer.AppendLine($"추정 규모 : {eqkMag.ToString("N1")}");

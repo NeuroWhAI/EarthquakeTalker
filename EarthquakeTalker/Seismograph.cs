@@ -375,7 +375,7 @@ namespace EarthquakeTalker
                                 {
                                     Level = Message.Priority.Critical,
                                     Sender = Channel + " " + Network + "_" + Station + " Station",
-                                    Text = $@"{Name} {TypeText}의 진동에 관한 조기 분석 결과.
+                                    Text = $@"⚠️ {Name} {TypeText}의 진동에 관한 조기 분석 결과.
 수치 : {(wave.MaxValue / DangerValue * 100.0).ToString("F2")}%
 진도 : {Earthquake.MMIToString(mmi)}
 지속시간 : 약 {string.Format("{0:F3}", waveTime)}초 이상
