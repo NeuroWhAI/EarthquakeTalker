@@ -299,8 +299,8 @@ namespace EarthquakeTalker
                     var buffer = new StringBuilder();
                     buffer.AppendLine("⚠️ 조기경보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
-                    buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
-                    buffer.AppendLine($"추정 규모 : {eqkMag.ToString("N1")}");
+                    buffer.AppendLine($"발생 시각 : {eqkTime:yyyy-MM-dd HH:mm:ss}");
+                    buffer.AppendLine($"추정 규모 : {eqkMag:N1}");
                     buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(eqkIntens)}({eqkIntens})");
                     buffer.AppendLine("대피 요령 : https://www.weather.go.kr/pews/man/m.html");
                     buffer.AppendLine("수동으로 분석한 정보는 추후 발표될 예정입니다.");
@@ -323,8 +323,8 @@ namespace EarthquakeTalker
                     var buffer = new StringBuilder();
                     buffer.AppendLine("지진정보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
-                    buffer.AppendLine($"발생 시각 : {eqkTime.ToString("yyyy-MM-dd HH:mm:ss")}");
-                    buffer.AppendLine($"규모 : {eqkMag.ToString("N1")}");
+                    buffer.AppendLine($"발생 시각 : {eqkTime:yyyy-MM-dd HH:mm:ss}");
+                    buffer.AppendLine($"규모 : {eqkMag:N1}");
                     buffer.Append($"깊이 : ");
                     buffer.AppendLine((eqkDep == 0) ? "-" : $"{eqkDep} km");
                     buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(eqkIntens)}({eqkIntens})");
