@@ -14,5 +14,6 @@ Earthquake Alarm Bot
   * [KMA](https://twitter.com/kma_earthquake)
 * Website
   * [KMA](http://www.weather.go.kr/weather/earthquake_volcano/report.jsp)
+  * [PEWS](https://www.weather.go.kr/pews/)
   * [NECIS Early Warning](http://necis.kma.go.kr/necis-dbf/usernl/earthquake/earthquakeForAlertList.do)
   * [WEATHERi](http://www.weatheri.co.kr/special/special03.php)
