@@ -82,6 +82,7 @@
     <Compile Include="MessageServer.cs" />
     <Compile Include="MultipleTalker.cs" />
     <Compile Include="NecisEarlyWarning.cs" />
+    <Compile Include="PewsStation.cs" />
     <Compile Include="Seismograph.cs" />
     <Compile Include="SLinkSeismograph.cs" />
     <Compile Include="TelegramBot.cs" />

@@ -43,6 +43,11 @@ namespace EarthquakeTalker
         private string m_gridFilePath = null;
         private readonly object m_syncGridPath = new object();
 
+        private bool m_stationUpdate = true;
+        private List<PewsStation> m_stations = new List<PewsStation>();
+        private static readonly int StnMmiTrigger = 3;
+        private int m_maxStnMmi = StnMmiTrigger - 1;
+
         //#############################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
@@ -50,6 +55,10 @@ namespace EarthquakeTalker
             this.JobDelay = TimeSpan.FromSeconds(0.2);
 
             m_gridMap = Image.FromFile("map.png");
+
+            m_stationUpdate = true;
+            m_stations.Clear();
+            m_maxStnMmi = StnMmiTrigger - 1;
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -72,6 +81,10 @@ namespace EarthquakeTalker
             {
                 m_gridFilePath = null;
             }
+
+            m_stationUpdate = true;
+            m_stations.Clear();
+            m_maxStnMmi = StnMmiTrigger - 1;
         }
 
         protected override Message OnWork(Action<Message> sender)
@@ -112,7 +125,7 @@ namespace EarthquakeTalker
                 }
                 m_prevBinTime = binTime;
 
-                string url = $"{DataPath}/{binTime}.b";
+                string url = $"{DataPath}/{binTime}";
 
 
                 byte[] bytes = null;
@@ -121,7 +134,7 @@ namespace EarthquakeTalker
                 {
                     client.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
-                    bytes = client.DownloadData(url);
+                    bytes = client.DownloadData(url + ".b");
 
 
                     // 시간 동기화.
@@ -155,6 +168,9 @@ namespace EarthquakeTalker
                     }
                     string body = bodyBuff.ToString();
 
+
+                    // 관측소 정보 업데이트 신호 확인.
+                    m_stationUpdate = (m_stationUpdate || (header[0] == '1'));
 
                     int phase = 0;
                     if (header[1] == '0')
@@ -201,6 +217,38 @@ namespace EarthquakeTalker
                     }
 
                     m_prevPhase = phase;
+
+
+                    if (m_stationUpdate)
+                    {
+                        byte[] stnBytes = null;
+
+                        using (var client = new WebClient())
+                        {
+                            client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+                            stnBytes = client.DownloadData(url + ".s");
+                        }
+
+                        bodyBuff = new StringBuilder();
+                        for (int i = 0; i < stnBytes.Length; ++i)
+                        {
+                            bodyBuff.Append(ByteToBinStr(stnBytes[i]));
+                        }
+
+                        HandleStn(bodyBuff.ToString());
+                    }
+
+
+                    // 지진 정보 발표가 없는 상태이고 관측소 데이터가 있으면 진도 분석.
+                    if (phase <= 1 && m_stations.Count > 0)
+                    {
+                        msg = HandleMmi(body);
+                    }
+                    else
+                    {
+                        m_maxStnMmi = StnMmiTrigger - 1;
+                    }
 
 
                     Console.Write('P');
@@ -342,6 +390,125 @@ namespace EarthquakeTalker
             }
 
             return msg;
+        }
+
+        private void HandleStn(string body)
+        {
+            var stnLat = new List<double>();
+            var stnLon = new List<double>();
+
+            for (int i = 0; i + 20 <= body.Length; i += 20)
+            {
+                stnLat.Add(30 + (double)Convert.ToInt32(body.Substring(i, 10), 2) / 100);
+                stnLon.Add(120 + (double)Convert.ToInt32(body.Substring(i + 10, 10), 2) / 100);
+            }
+
+            if (stnLat.Count < 99)
+            {
+                // 재시도.
+                return;
+            }
+
+            if (m_stations.Count <= 0)
+            {
+                m_logger.PushLog($"관측소 수 : {stnLat.Count}");
+            }
+
+            m_stations.Clear();
+            for (int i = 0; i < stnLat.Count; ++i)
+            {
+                m_stations.Add(new PewsStation
+                {
+                    Latitude = stnLat[i],
+                    Longitude = stnLon[i],
+                });
+            }
+
+            // 다음 업데이트 신호 대기.
+            m_stationUpdate = false;
+        }
+
+        private Message HandleMmi(string body)
+        {
+            if (m_stations.Count <= 0)
+            {
+                return null;
+            }
+
+            var mmiData = new List<int>();
+
+            string mmiBody = body.Split(new[] { "11111111" }, StringSplitOptions.None).First();
+            for (int i = 8; i < mmiBody.Length; i += 4)
+            {
+                if (mmiData.Count >= m_stations.Count)
+                {
+                    break;
+                }
+
+                int mmi = Convert.ToInt32(mmiBody.Substring(i, 4), 2);
+                mmiData.Add(mmi);
+            }
+
+            if (mmiData.Count < m_stations.Count)
+            {
+                return null;
+            }
+
+            int maxMmi = mmiData.Max();
+            if (maxMmi <= m_maxStnMmi)
+            {
+                // 안정화 되었으면 트리거 레벨 초기화.
+                if (maxMmi < StnMmiTrigger)
+                {
+                    m_maxStnMmi = StnMmiTrigger - 1;
+                }
+
+                return null;
+            }
+
+            int subMmiCnt = mmiData.Count((mmi) => mmi == 2);
+            if (subMmiCnt >= 2)
+            {
+                int[] mmiCnt = new int[14];
+                for (int mmi = 0; mmi < mmiCnt.Length; ++mmi)
+                {
+                    mmiCnt[mmi] = mmiData.Count((m) => m == mmi);
+                }
+
+                var buffer = new StringBuilder();
+                buffer.AppendLine("⚠️ 관측소 진도 정보가 수신되었습니다.");
+                buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(maxMmi)}({maxMmi})");
+
+                for (int mmi = mmiCnt.Length - 1; mmi >= 2; --mmi)
+                {
+                    if (mmiCnt[mmi] > 0)
+                    {
+                        buffer.Append($"진도 {Earthquake.MMIToString(mmi)}({mmi}) : ");
+                        buffer.AppendLine($"{mmiCnt[mmi]}건");
+                    }
+                }
+
+                if (maxMmi >= 5)
+                {
+                    buffer.AppendLine("대피 요령 : https://www.weather.go.kr/pews/man/m.html");
+                }
+
+                buffer.AppendLine("오류일 수 있으며 자세한 정보는 추후 발표될 예정입니다.");
+                buffer.AppendLine();
+                buffer.Append(Earthquake.GetKnowHowFromMMI(maxMmi));
+
+                // 임시 트리거 레벨을 높힘.
+                m_maxStnMmi = maxMmi;
+
+                return new Message()
+                {
+                    Level = Message.Priority.Critical,
+                    Sender = "기상청 실시간 지진감시",
+                    Text = buffer.ToString().TrimEnd(),
+                };
+            }
+
+            return null;
         }
 
         private async Task RequestGridData(string eqkId, int phase, PointF epicenter)
