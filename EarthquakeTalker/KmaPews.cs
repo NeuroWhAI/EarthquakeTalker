@@ -134,7 +134,14 @@ namespace EarthquakeTalker
                 {
                     client.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
-                    bytes = client.DownloadData(url + ".b");
+                    try
+                    {
+                        bytes = client.DownloadData(url + ".b");
+                    }
+                    catch (WebException)
+                    {
+                        return null;
+                    }
 
 
                     // 시간 동기화.
@@ -227,16 +234,26 @@ namespace EarthquakeTalker
                         {
                             client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
 
-                            stnBytes = client.DownloadData(url + ".s");
+                            try
+                            {
+                                stnBytes = client.DownloadData(url + ".s");
+                            }
+                            catch (WebException)
+                            {
+                                stnBytes = null;
+                            }
                         }
 
-                        bodyBuff = new StringBuilder();
-                        for (int i = 0; i < stnBytes.Length; ++i)
+                        if (stnBytes != null && stnBytes.Length > 0)
                         {
-                            bodyBuff.Append(ByteToBinStr(stnBytes[i]));
-                        }
+                            bodyBuff = new StringBuilder();
+                            for (int i = 0; i < stnBytes.Length; ++i)
+                            {
+                                bodyBuff.Append(ByteToBinStr(stnBytes[i]));
+                            }
 
-                        HandleStn(bodyBuff.ToString());
+                            HandleStn(bodyBuff.ToString());
+                        }
                     }
 
 
