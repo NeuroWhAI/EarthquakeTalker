@@ -483,8 +483,8 @@ namespace EarthquakeTalker
                 return null;
             }
 
-            int subMmiCnt = mmiData.Count((mmi) => mmi == 2);
-            if (subMmiCnt >= 2)
+            int subMmiCnt = mmiData.Count((mmi) => mmi >= 2);
+            if (subMmiCnt >= 3)
             {
                 int[] mmiCnt = new int[14];
                 for (int mmi = 0; mmi < mmiCnt.Length; ++mmi)
