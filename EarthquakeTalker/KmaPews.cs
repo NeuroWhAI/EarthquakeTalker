@@ -265,6 +265,12 @@ namespace EarthquakeTalker
                     else
                     {
                         m_maxStnMmi = StnMmiTrigger - 1;
+
+                        // 관측소 최대 진도 초기화.
+                        foreach (var stn in m_stations)
+                        {
+                            stn.MaxMmi = 0;
+                        }
                     }
 
 
@@ -471,16 +477,52 @@ namespace EarthquakeTalker
                 return null;
             }
 
+            // 관측소 최대 진도 갱신.
+            for (int i = 0; i < m_stations.Count; ++i)
+            {
+                var stn = m_stations[i];
+                int mmi = mmiData[i];
+
+                if (mmi > stn.MaxMmi)
+                {
+                    stn.MaxMmi = mmi;
+                }
+            }
+
             int maxMmi = mmiData.Max();
             if (maxMmi <= m_maxStnMmi)
             {
-                // 안정화 되었으면 트리거 레벨 초기화.
+                Message msg = null;
+
+                // 안정화 되었으면.
                 if (maxMmi < StnMmiTrigger)
                 {
+                    // NOTE: 큰 지진의 경우 신속히 지진 속보가 발표되므로 이 부분은 실행되지 않을 수도 있으나 괜찮음.
+
+                    // 트리거를 초과했었으면 진도 지도 송출.
+                    if (m_maxStnMmi >= StnMmiTrigger)
+                    {
+                        string filePath = SaveStnMaxMmiToFile();
+
+                        msg = new Message()
+                        {
+                            Level = Message.Priority.Normal,
+                            Sender = "기상청 실시간 지진감시",
+                            Text = filePath,
+                        };
+                    }
+
+                    // 관측소 최대 진도 초기화.
+                    foreach (var stn in m_stations)
+                    {
+                        stn.MaxMmi = 0;
+                    }
+
+                    // 트리거 레벨 초기화.
                     m_maxStnMmi = StnMmiTrigger - 1;
                 }
 
-                return null;
+                return msg;
             }
 
             int subMmiCnt = mmiData.Count((mmi) => mmi >= 2);
@@ -638,7 +680,7 @@ namespace EarthquakeTalker
             if (imgs.Length > 100)
             {
                 var oldestImg = imgs.OrderBy(info => info.CreationTime).First();
-                File.Delete(oldestImg.FullName);
+                oldestImg.Delete();
             }
 
 
@@ -649,6 +691,89 @@ namespace EarthquakeTalker
 
 
             return fileName;
+        }
+
+        private string SaveStnMaxMmiToFile()
+        {
+            int maxMmi = -1;
+
+            using (var canvas = new Bitmap(m_gridMap.Width, m_gridMap.Height))
+            using (var g = Graphics.FromImage(canvas))
+            {
+                // Background
+                g.FillRectangle(m_mmiBrushes.First(), 0, 0, canvas.Width, canvas.Height);
+
+                // Intensity
+                foreach (var stn in m_stations.OrderBy((s) => s.MaxMmi))
+                {
+                    int mmi = stn.MaxMmi;
+
+                    if (maxMmi < 0)
+                    {
+                        maxMmi = mmi;
+                    }
+
+                    if (mmi >= 2 && mmi < m_mmiBrushes.Length)
+                    {
+                        var brush = m_mmiBrushes[mmi];
+                        float x = (float)((stn.Longitude - 124.5) * 113 + 1);
+                        float y = (float)((38.9 - stn.Latitude) * 138.4 + 1);
+
+                        // 진도가 클수록 원을 작게 그림.
+                        float circleRadius = Math.Max(24.0f - mmi * 2.0f, 1.0f);
+
+                        g.FillEllipse(brush, x - circleRadius, y - circleRadius,
+                            circleRadius * 2, circleRadius * 2);
+                    }
+                }
+
+                // Map
+                // DPI 상관없이 그리기 위한 버전 사용.
+                g.DrawImage(m_gridMap, new Rectangle(0, 0, m_gridMap.Width, m_gridMap.Height));
+
+                // Station
+                foreach (var stn in m_stations.OrderBy((s) => s.MaxMmi))
+                {
+                    int mmi = stn.MaxMmi;
+                    if (mmi >= 0 && mmi < m_mmiBrushes.Length)
+                    {
+                        var brush = m_mmiBrushes[mmi];
+                        float x = (float)((stn.Longitude - 124.5) * 113 - 4);
+                        float y = (float)((38.9 - stn.Latitude) * 138.4 - 4);
+
+                        g.FillRectangle(brush, x, y, 10, 10);
+                        g.DrawRectangle(Pens.Black, x, y, 10, 10);
+                    }
+                }
+
+                g.Flush();
+
+
+                // Save to file.
+                //
+
+                var folderPath = "Station";
+                var folder = new DirectoryInfo(folderPath);
+
+                Directory.CreateDirectory(folderPath);
+
+
+                // 오래된 이미지 삭제.
+                var imgs = folder.GetFiles();
+                if (imgs.Length > 100)
+                {
+                    var oldestImg = imgs.OrderBy(info => info.CreationTime).First();
+                    oldestImg.Delete();
+                }
+
+
+                string timestamp = DateTime.UtcNow.ToString("yyyyMMdd HHmmss");
+                string fileName = Path.Combine(folderPath, $"{timestamp} {maxMmi}.png");
+
+                canvas.Save(fileName);
+
+                return fileName;
+            }
         }
     }
 }

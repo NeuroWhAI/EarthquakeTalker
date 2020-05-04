@@ -17,5 +17,10 @@ namespace EarthquakeTalker
         /// 위도
         /// </summary>
         public double Latitude { get; set; } = 0;
+
+        /// <summary>
+        /// 최대 진도
+        /// </summary>
+        public int MaxMmi { get; set; } = 0;
     }
 }
