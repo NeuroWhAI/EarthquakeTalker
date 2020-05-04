@@ -47,6 +47,7 @@ namespace EarthquakeTalker
         private List<PewsStation> m_stations = new List<PewsStation>();
         private static readonly int StnMmiTrigger = 3;
         private int m_maxStnMmi = StnMmiTrigger - 1;
+        private readonly TimeSpan StnMmiLife = TimeSpan.FromSeconds(8.0);
 
         //#############################################################################################
 
@@ -266,10 +267,10 @@ namespace EarthquakeTalker
                     {
                         m_maxStnMmi = StnMmiTrigger - 1;
 
-                        // 관측소 최대 진도 초기화.
+                        // 관측소 진도 초기화.
                         foreach (var stn in m_stations)
                         {
-                            stn.MaxMmi = 0;
+                            stn.ResetMmi();
                         }
                     }
 
@@ -453,6 +454,9 @@ namespace EarthquakeTalker
 
         private Message HandleMmi(string body)
         {
+            const double ClusterDistance = 80.0;
+            const int MinClusterSize = 3;
+
             if (m_stations.Count <= 0)
             {
                 return null;
@@ -477,27 +481,90 @@ namespace EarthquakeTalker
                 return null;
             }
 
-            // 관측소 최대 진도 갱신.
+            // 관측소 진도 갱신.
             for (int i = 0; i < m_stations.Count; ++i)
             {
                 var stn = m_stations[i];
                 int mmi = mmiData[i];
 
-                if (mmi > stn.MaxMmi)
+                stn.UpdateMmi(mmi, StnMmiLife);
+            }
+
+            int maxClusterMmi = 0;
+            var largeClusterMmi = new List<int> { 0 };
+
+            bool[] visited = new bool[m_stations.Count];
+            for (int i = 0; i < m_stations.Count; ++i)
+            {
+                if (visited[i])
                 {
-                    stn.MaxMmi = mmi;
+                    continue;
+                }
+
+                var clusterMmi = new List<int> { 0 };
+
+                var leftStns = new Queue<int>();
+                leftStns.Enqueue(i);
+
+                while (leftStns.Count > 0)
+                {
+                    int current = leftStns.Dequeue();
+
+                    if (visited[current])
+                    {
+                        continue;
+                    }
+                    visited[current] = true;
+
+                    var stn = m_stations[current];
+                    int mmi = stn.Mmi;
+
+                    if (mmi < 2)
+                    {
+                        continue;
+                    }
+
+                    clusterMmi.Add(mmi);
+
+                    double centerX = (stn.Longitude - 124.5) * 113;
+                    double centerY = (38.9 - stn.Latitude) * 138.4;
+
+                    for (int next = 0; next < m_stations.Count; ++next)
+                    {
+                        if (visited[next])
+                        {
+                            continue;
+                        }
+
+                        var nextStn = m_stations[next];
+
+                        double subX = (nextStn.Longitude - 124.5) * 113 - centerX;
+                        double subY = (38.9 - nextStn.Latitude) * 138.4 - centerY;
+
+                        double distanceSqr = subX * subX + subY + subY;
+                        if (distanceSqr < ClusterDistance * ClusterDistance)
+                        {
+                            leftStns.Enqueue(next);
+                        }
+                    }
+                }
+
+                int currentMaxMmi = clusterMmi.Max();
+                if (currentMaxMmi > maxClusterMmi)
+                {
+                    maxClusterMmi = currentMaxMmi;
+                    largeClusterMmi = clusterMmi;
                 }
             }
 
-            int maxMmi = mmiData.Max();
-            if (maxMmi <= m_maxStnMmi)
+            if (maxClusterMmi <= m_maxStnMmi)
             {
                 Message msg = null;
 
                 // 안정화 되었으면.
-                if (maxMmi < StnMmiTrigger)
+                if (maxClusterMmi < StnMmiTrigger)
                 {
-                    // NOTE: 큰 지진의 경우 신속히 지진 속보가 발표되므로 이 부분은 실행되지 않을 수도 있으나 괜찮음.
+                    // NOTE: 큰 지진의 경우 신속히 지진 속보가 발표되므로 이 부분은 실행되지 않을 수도 있음.
 
                     // 트리거를 초과했었으면 진도 지도 송출.
                     if (m_maxStnMmi >= StnMmiTrigger)
@@ -512,10 +579,10 @@ namespace EarthquakeTalker
                         };
                     }
 
-                    // 관측소 최대 진도 초기화.
+                    // 관측소 진도 초기화.
                     foreach (var stn in m_stations)
                     {
-                        stn.MaxMmi = 0;
+                        stn.ResetMmi();
                     }
 
                     // 트리거 레벨 초기화.
@@ -525,18 +592,26 @@ namespace EarthquakeTalker
                 return msg;
             }
 
-            int subMmiCnt = mmiData.Count((mmi) => mmi >= 2);
-            if (subMmiCnt >= 3)
+            if (largeClusterMmi.Count >= MinClusterSize + 1)
             {
                 int[] mmiCnt = new int[14];
                 for (int mmi = 0; mmi < mmiCnt.Length; ++mmi)
                 {
-                    mmiCnt[mmi] = mmiData.Count((m) => m == mmi);
+                    mmiCnt[mmi] = largeClusterMmi.Count((m) => m == mmi);
                 }
 
                 var buffer = new StringBuilder();
-                buffer.AppendLine("⚠️ 관측소 진도 정보가 수신되었습니다.");
-                buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(maxMmi)}({maxMmi})");
+
+                if (m_maxStnMmi >= StnMmiTrigger)
+                {
+                    buffer.AppendLine("⚠️ 관측소 진도 정보가 갱신되었습니다.");
+                }
+                else
+                {
+                    buffer.AppendLine("⚠️ 관측소 진도 정보가 수신되었습니다.");
+                }
+
+                buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(maxClusterMmi)}({maxClusterMmi})");
 
                 for (int mmi = mmiCnt.Length - 1; mmi >= 2; --mmi)
                 {
@@ -547,17 +622,17 @@ namespace EarthquakeTalker
                     }
                 }
 
-                if (maxMmi >= 5)
+                if (maxClusterMmi >= 5)
                 {
                     buffer.AppendLine("대피 요령 : https://www.weather.go.kr/pews/man/m.html");
                 }
 
                 buffer.AppendLine("오류일 수 있으며 자세한 정보는 추후 발표될 예정입니다.");
                 buffer.AppendLine();
-                buffer.Append(Earthquake.GetKnowHowFromMMI(maxMmi));
+                buffer.Append(Earthquake.GetKnowHowFromMMI(maxClusterMmi));
 
                 // 임시 트리거 레벨을 높힘.
-                m_maxStnMmi = maxMmi;
+                m_maxStnMmi = maxClusterMmi;
 
                 return new Message()
                 {
