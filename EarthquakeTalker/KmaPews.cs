@@ -141,6 +141,15 @@ namespace EarthquakeTalker
                     }
                     catch (WebException)
                     {
+                        if (m_tide < 1000)
+                        {
+                            m_tide += 200;
+                        }
+                        else
+                        {
+                            m_tide -= 200;
+                        }
+
                         return null;
                     }
 
