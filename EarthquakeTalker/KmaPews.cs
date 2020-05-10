@@ -550,7 +550,7 @@ namespace EarthquakeTalker
                         double subX = (nextStn.Longitude - 124.5) * 113 - centerX;
                         double subY = (38.9 - nextStn.Latitude) * 138.4 - centerY;
 
-                        double distanceSqr = subX * subX + subY + subY;
+                        double distanceSqr = subX * subX + subY * subY;
                         if (distanceSqr < ClusterDistance * ClusterDistance)
                         {
                             leftStns.Enqueue(next);
