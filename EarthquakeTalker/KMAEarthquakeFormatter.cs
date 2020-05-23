@@ -27,7 +27,7 @@ namespace EarthquakeTalker
                 {
                     HttpClient client = new HttpClient();
 
-                    var task = client.GetByteArrayAsync(@"http://www.weather.go.kr/weather/earthquake_volcano/report.jsp");
+                    var task = client.GetByteArrayAsync(@"https://www.weather.go.kr/w/wnuri-eqk-vol/eqk/report.do");
 
                     task.Wait();
 
