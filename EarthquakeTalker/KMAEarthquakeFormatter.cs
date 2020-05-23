@@ -18,7 +18,7 @@ namespace EarthquakeTalker
             var sender = prm as Action<Message>;
 
 
-            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(30));
 
 
             for (int retry = 0; retry < 32; ++retry)
