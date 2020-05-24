@@ -45,8 +45,7 @@ namespace EarthquakeTalker
 
 
                 var byteArray = kmaNoti.Result.ToArray();
-                var encoding = Encoding.GetEncoding(51949/*euc-kr*/);
-                var kmaNotiHtml = encoding.GetString(byteArray, 0, byteArray.Length);
+                var kmaNotiHtml = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
 
                 string noti = Util.ConvertHtmlToText(kmaNotiHtml).Trim();
 
@@ -74,21 +73,7 @@ namespace EarthquakeTalker
                         };
 
 
-                        // 규모 추출.
-                        var scaleMatch = Regex.Match(noti, @"규모\s*:\s*(\d+(?:\.\d+)?)");
-
-                        if (scaleMatch.Success && scaleMatch.Groups.Count >= 2
-                            && double.TryParse(scaleMatch.Groups[1].Value, out double scale))
-                        {
-                            if (scale > 0.2)
-                            {
-                                return msg;
-                            }
-                        }
-                        else
-                        {
-                            return msg;
-                        }
+                        return msg;
                     }
                     else
                     {
