@@ -39,13 +39,13 @@ namespace EarthquakeTalker
         {
             try
             {
-                var kmaNoti = m_client.GetByteArrayAsync(@"https://www.weather.go.kr/w/wnuri-eqk-vol/eqk/eqk-micro.do");
+                var kmaNoti = m_client.GetByteArrayAsync(@"https://www.weather.go.kr/plus/eqkvol/ajaxEqkMicroPopup.jsp");
 
                 kmaNoti.Wait();
 
 
                 var byteArray = kmaNoti.Result.ToArray();
-                var kmaNotiHtml = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
+                var kmaNotiHtml = Encoding.GetEncoding(949).GetString(byteArray, 0, byteArray.Length);
 
                 string noti = Util.ConvertHtmlToText(kmaNotiHtml).Trim();
 
