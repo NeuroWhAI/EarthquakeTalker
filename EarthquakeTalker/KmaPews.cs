@@ -378,7 +378,7 @@ namespace EarthquakeTalker
                     // 발생 시각, 규모, 최대 진도, 문구 정도는 부정확할 수 있어도 첫 정보에 포함되는 듯.
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("⚠️ 조기경보가 발표되었습니다.");
+                    buffer.AppendLine("⚠️ 지진 신속정보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime:yyyy-MM-dd HH:mm:ss}");
                     buffer.AppendLine($"추정 규모 : {eqkMag:N1}");
@@ -402,7 +402,7 @@ namespace EarthquakeTalker
                     // 분석 완료된 것 같고 깊이, 영향 지역이 나옴.
 
                     var buffer = new StringBuilder();
-                    buffer.AppendLine("지진정보가 발표되었습니다.");
+                    buffer.AppendLine("지진 상세정보가 발표되었습니다.");
                     buffer.AppendLine($"정보 : {eqkStr}");
                     buffer.AppendLine($"발생 시각 : {eqkTime:yyyy-MM-dd HH:mm:ss}");
                     buffer.AppendLine($"규모 : {eqkMag:N1}");
