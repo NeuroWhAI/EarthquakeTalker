@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Drawing;
+using System.Globalization;
 
 namespace EarthquakeTalker
 {
     class KmaPews : Worker
     {
-        private const int HeadLength = 4;
+        private string DataPath = "https://www.weather.go.kr/pews/data";
+        private int HeadLength = 4;
         private const int MaxEqkStrLen = 60;
         private const int MaxEqkInfoLen = 120;
         private static string[] AreaNames = { "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종", "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주" };
@@ -28,8 +30,6 @@ namespace EarthquakeTalker
         }
 
         //#############################################################################################
-
-        private readonly string DataPath = "https://www.weather.go.kr/pews/data";
 
         private string m_prevBinTime = string.Empty;
         private double m_tide = 1000;
@@ -49,6 +49,9 @@ namespace EarthquakeTalker
         private int m_maxStnMmi = StnMmiTrigger - 1;
         private readonly TimeSpan StnMmiLife = TimeSpan.FromSeconds(8.0);
 
+        private bool m_simMode = false;
+        private DateTime m_simEndTime = DateTime.MinValue;
+
         //#############################################################################################
 
         protected override void BeforeStart(MultipleTalker talker)
@@ -60,6 +63,10 @@ namespace EarthquakeTalker
             m_stationUpdate = true;
             m_stations.Clear();
             m_maxStnMmi = StnMmiTrigger - 1;
+
+#if DEBUG
+            StartSimulation("2017000407", "20171115142931"); // 포항 5.4
+#endif
         }
 
         protected override void AfterStop(MultipleTalker talker)
@@ -119,14 +126,21 @@ namespace EarthquakeTalker
 
             try
             {
-                string binTime = DateTime.UtcNow.AddMilliseconds(-m_tide).ToString("yyyyMMddHHmmss");
-                if (m_prevBinTime == binTime)
+                var binTime = DateTime.UtcNow.AddMilliseconds(-m_tide);
+                string binTimeStr = binTime.ToString("yyyyMMddHHmmss");
+                if (m_prevBinTime == binTimeStr)
                 {
                     return null;
                 }
-                m_prevBinTime = binTime;
+                m_prevBinTime = binTimeStr;
 
-                string url = $"{DataPath}/{binTime}";
+                if (m_simMode && binTime >= m_simEndTime)
+                {
+                    StopSimulation();
+                    return null;
+                }
+
+                string url = $"{DataPath}/{binTimeStr}";
 
 
                 byte[] bytes = null;
@@ -141,13 +155,16 @@ namespace EarthquakeTalker
                     }
                     catch (WebException)
                     {
-                        if (m_tide < 1000)
+                        if (!m_simMode)
                         {
-                            m_tide += 200;
-                        }
-                        else
-                        {
-                            m_tide -= 200;
+                            if (m_tide < 1000)
+                            {
+                                m_tide += 200;
+                            }
+                            else
+                            {
+                                m_tide -= 200;
+                            }
                         }
 
                         return null;
@@ -155,7 +172,7 @@ namespace EarthquakeTalker
 
 
                     // 시간 동기화.
-                    if (DateTime.UtcNow >= m_nextSyncTime)
+                    if (!m_simMode && DateTime.UtcNow >= m_nextSyncTime)
                     {
                         m_nextSyncTime = DateTime.UtcNow + TimeSpan.FromSeconds(10.0);
 
@@ -333,6 +350,29 @@ namespace EarthquakeTalker
         private string ByteToBinStr(byte val)
         {
             return Convert.ToString(val, 2).PadLeft(8, '0');
+        }
+
+        private void StartSimulation(string eqkId, string eqkStartTime)
+        {
+            var startTime = DateTime.ParseExact(eqkStartTime, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+
+            m_simMode = true;
+            m_simEndTime = startTime.AddHours(-9) + TimeSpan.FromSeconds(300);
+
+            HeadLength = 1;
+            DataPath += $"/{eqkId}";
+            m_tide = (DateTime.UtcNow.AddHours(9) - startTime).TotalMilliseconds;
+        }
+
+        private void StopSimulation()
+        {
+            m_simMode = false;
+
+            HeadLength = 4;
+            DataPath = "https://www.weather.go.kr/pews/data";
+            m_tide = 1000;
+
+            m_stationUpdate = true;
         }
 
         private Message HandleEqk(int phase, string body, byte[] infoBytes, out PointF epicenter)
