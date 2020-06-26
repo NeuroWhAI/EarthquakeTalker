@@ -13,8 +13,10 @@ namespace EarthquakeTalker
 {
     class FCMServer
     {
-        public FCMServer(string keyFileName)
+        public FCMServer(string projectName, string keyFileName)
         {
+            Endpoint = $"https://fcm.googleapis.com/v1/projects/{projectName}/messages:send";
+
             using (var stream = new FileStream(keyFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 m_credential = GoogleCredential.FromStream(stream)
@@ -23,7 +25,7 @@ namespace EarthquakeTalker
             }
         }
 
-        private readonly string Endpoint = "https://fcm.googleapis.com/v1/projects/neurowhai-pews/messages:send";
+        private readonly string Endpoint;
 
         private ServiceAccountCredential m_credential;
         private Thread m_task = null;

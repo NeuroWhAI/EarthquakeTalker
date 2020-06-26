@@ -145,7 +145,7 @@ namespace EarthquakeTalker
             talker.AddTalker(new MessageServer(msgServerPort, "messages.dat"));
 
             /// FCM 서버
-            var fcmServer = new FCMServer("fcm.json");
+            var fcmServer = new FCMServer("neurowhai-pews", "fcm.json");
             fcmServer.Start();
 
             /// 지진계
