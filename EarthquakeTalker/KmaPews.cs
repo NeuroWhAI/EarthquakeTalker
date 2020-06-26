@@ -773,6 +773,7 @@ namespace EarthquakeTalker
                         try
                         {
                             m_fcm.SendData(m_fcmMessage, "eqk", 60);
+                            Console.Write('F');
                             break;
                         }
                         catch (Exception err)
