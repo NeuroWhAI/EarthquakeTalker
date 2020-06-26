@@ -113,6 +113,7 @@
     <Compile Include="MessageServer.cs" />
     <Compile Include="MultipleTalker.cs" />
     <Compile Include="NecisEarlyWarning.cs" />
+    <Compile Include="PewsJson.cs" />
     <Compile Include="PewsStation.cs" />
     <Compile Include="Seismograph.cs" />
     <Compile Include="SLinkSeismograph.cs" />

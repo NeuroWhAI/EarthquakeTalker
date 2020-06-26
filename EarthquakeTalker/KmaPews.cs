@@ -8,6 +8,7 @@ using System.Net;
 using System.IO;
 using System.Drawing;
 using System.Globalization;
+using System.IO.Compression;
 
 namespace EarthquakeTalker
 {
@@ -22,8 +23,10 @@ namespace EarthquakeTalker
 
         //#############################################################################################
 
-        public KmaPews()
+        public KmaPews(FCMServer fcmServer = null)
         {
+            m_fcm = fcmServer;
+
             m_mmiBrushes = MmiColors
                 .Select((color) => new SolidBrush(HexCodeToColor(color)))
                 .ToArray();
@@ -51,6 +54,9 @@ namespace EarthquakeTalker
 
         private bool m_simMode = false;
         private DateTime m_simEndTime = DateTime.MinValue;
+
+        private FCMServer m_fcm = null;
+        private PewsJson m_fcmMessage = null;
 
         //#############################################################################################
 
@@ -378,7 +384,7 @@ namespace EarthquakeTalker
         private Message HandleEqk(int phase, string body, byte[] infoBytes, out PointF epicenter)
         {
             string data = body.Substring(body.Length - (MaxEqkStrLen * 8 + MaxEqkInfoLen));
-            string eqkStr = WebUtility.UrlDecode(Encoding.UTF8.GetString(infoBytes));
+            string eqkStr = WebUtility.UrlDecode(Encoding.UTF8.GetString(infoBytes)).Trim();
 
             double origLat = 30 + (double)Convert.ToInt32(data.Substring(0, 10), 2) / 100;
             double origLon = 124 + (double)Convert.ToInt32(data.Substring(10, 10), 2) / 100;
@@ -429,6 +435,14 @@ namespace EarthquakeTalker
                     buffer.Append(Earthquake.GetKnowHowFromMMI(eqkIntens));
 
                     m_prevAlarmId = alarmId;
+
+                    m_fcmMessage = new PewsJson
+                    {
+                        time = (eqkUnixTime + 9 * 3600).ToString(),
+                        msg = eqkStr,
+                        scale = eqkMag.ToString("N1"),
+                        mmi = eqkIntens.ToString(),
+                    };
 
                     return new Message()
                     {
@@ -719,6 +733,34 @@ namespace EarthquakeTalker
                 // 나중에 재시도.
                 m_gridEqkId = eqkId;
                 return;
+            }
+
+            if (m_fcmMessage != null && m_prevPhase == 2)
+            {
+                MemoryStream output = new MemoryStream();
+                using (var dstream = new DeflateStream(output, CompressionLevel.Optimal))
+                {
+                    dstream.Write(bytes, 0, bytes.Length);
+                }
+                byte[] compressedBytes = output.ToArray();
+
+                m_fcmMessage.grid = BitConverter.ToString(compressedBytes).Replace("-", "");
+                Task.Factory.StartNew(new Action(() =>
+                {
+                    for (int retry = 4; retry >= 0; --retry)
+                    {
+                        try
+                        {
+                            m_fcm.SendData(m_fcmMessage, "eqk", 60);
+                            break;
+                        }
+                        catch (Exception err)
+                        {
+                            Console.WriteLine(err.Message);
+                            Console.WriteLine(err.StackTrace);
+                        }
+                    }
+                })).GetAwaiter();
             }
 
             var gridData = new List<int>();

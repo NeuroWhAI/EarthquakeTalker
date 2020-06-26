@@ -144,6 +144,10 @@ namespace EarthquakeTalker
 #endif
             talker.AddTalker(new MessageServer(msgServerPort, "messages.dat"));
 
+            /// FCM 서버
+            var fcmServer = new FCMServer("fcm.json");
+            fcmServer.Start();
+
             /// 지진계
             List<Seismograph> seismographList = new List<Seismograph>();
             seismographList.Add(new SLinkSeismograph("slinktool.exe", "00BH1", "IU", "INCN", 3.352080e+09 / 100, "인천")
@@ -164,7 +168,7 @@ namespace EarthquakeTalker
             workerList.Add(new IssueWatcher("지진", "지진+-동공+-일본+-원전+-http+-카메라+-ㅋㅋㅋ+-캠",
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
             workerList.Add(new KmaNews());
-            workerList.Add(new KmaPews());
+            workerList.Add(new KmaPews(fcmServer));
 
             int sensorIndex = 0;
             foreach (var sensor in seismographList)
@@ -239,6 +243,8 @@ namespace EarthquakeTalker
             {
                 worker.Stop();
             }
+
+            fcmServer.Stop();
         }
     }
 }

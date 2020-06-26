@@ -91,30 +91,28 @@ namespace EarthquakeTalker
 
         private void UpdateToken()
         {
-            var nextTime = DateTime.MinValue;
-            string prevToken = string.Empty;
+            // 토큰을 얻으려고 시도할 때 갱신이 필요하면 알아서 해주지만
+            // 미리 해서 메시지 보낼 때 지연을 줄이기 위한 목적.
 
             while (m_running)
             {
                 try
                 {
-                    if (DateTime.UtcNow >= nextTime)
+                    bool expired;
+                    lock (m_syncCredential)
                     {
-                        string token;
-                        long expiresInSeconds;
+                        expired = m_credential.Token?.IsExpired(m_credential.Clock) ?? true;
+                    }
+
+                    if (expired)
+                    {
                         lock (m_syncCredential)
                         {
-                            token = m_credential.GetAccessTokenForRequestAsync().GetAwaiter().GetResult();
-                            expiresInSeconds = m_credential.Token.ExpiresInSeconds ?? 3600;
+                            m_credential.GetAccessTokenForRequestAsync().GetAwaiter().GetResult();
                         }
 
-                        if (token != prevToken)
-                        {
-                            prevToken = token;
-
-                            var expireTime = TimeSpan.FromSeconds(expiresInSeconds);
-                            nextTime = DateTime.UtcNow + expireTime - TimeSpan.FromMinutes(1);
-                        }
+                        Console.WriteLine();
+                        Console.WriteLine("Token renewed.");
                     }
                 }
                 catch (Exception err)
