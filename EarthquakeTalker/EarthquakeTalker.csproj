@@ -118,6 +118,7 @@
     <Compile Include="Seismograph.cs" />
     <Compile Include="SLinkSeismograph.cs" />
     <Compile Include="TelegramBot.cs" />
+    <Compile Include="TimeManager.cs" />
     <Compile Include="UserWatcher.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Program.cs" />

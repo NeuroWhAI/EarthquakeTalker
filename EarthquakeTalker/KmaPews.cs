@@ -70,6 +70,8 @@ namespace EarthquakeTalker
             m_stations.Clear();
             m_maxStnMmi = StnMmiTrigger - 1;
 
+            SyncTime();
+
 #if DEBUG
             StartSimulation("2017000407", "20171115142931"); // 포항 5.4
 #endif
@@ -163,13 +165,17 @@ namespace EarthquakeTalker
                     {
                         if (!m_simMode)
                         {
-                            if (m_tide < 1000)
+                            // 서버 시간과 동기화 실패 시 적절히 오프셋 조정.
+                            if (!SyncTime())
                             {
-                                m_tide += 200;
-                            }
-                            else
-                            {
-                                m_tide -= 200;
+                                if (m_tide < 1000)
+                                {
+                                    m_tide += 200;
+                                }
+                                else
+                                {
+                                    m_tide -= 200;
+                                }
                             }
                         }
 
@@ -356,6 +362,21 @@ namespace EarthquakeTalker
         private string ByteToBinStr(byte val)
         {
             return Convert.ToString(val, 2).PadLeft(8, '0');
+        }
+
+        private bool SyncTime()
+        {
+            try
+            {
+                var serverTime = TimeManager.GetNetworkTime("time.windows.com", 3000);
+                m_tide = (DateTime.UtcNow - serverTime).TotalMilliseconds + 1000;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void StartSimulation(string eqkId, string eqkStartTime)
