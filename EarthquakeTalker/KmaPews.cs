@@ -758,12 +758,7 @@ namespace EarthquakeTalker
 
             if (m_fcmMessage != null && m_prevPhase == 2)
             {
-                MemoryStream output = new MemoryStream();
-                using (var dstream = new DeflateStream(output, CompressionLevel.Optimal))
-                {
-                    dstream.Write(bytes, 0, bytes.Length);
-                }
-                byte[] compressedBytes = output.ToArray();
+                byte[] compressedBytes = Ionic.Zlib.ZlibStream.CompressBuffer(bytes);
 
                 m_fcmMessage.grid = BitConverter.ToString(compressedBytes).Replace("-", "");
                 Task.Factory.StartNew(new Action(() =>
