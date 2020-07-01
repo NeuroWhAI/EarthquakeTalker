@@ -756,7 +756,7 @@ namespace EarthquakeTalker
                 return;
             }
 
-            if (m_fcmMessage != null && m_prevPhase == 2)
+            if (m_fcmMessage != null && phase == 2)
             {
                 byte[] compressedBytes = Ionic.Zlib.ZlibStream.CompressBuffer(bytes);
 
