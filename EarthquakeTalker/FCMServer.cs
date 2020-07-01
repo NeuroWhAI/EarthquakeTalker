@@ -66,7 +66,32 @@ namespace EarthquakeTalker
                     },
                 },
             });
-            var msgBytes = Encoding.UTF8.GetBytes(msg);
+
+            SendData(msg);
+        }
+
+        public void SendDataTo(object jsonDataObj, string deviceToken, int ttlInSeconds)
+        {
+            string msg = JsonConvert.SerializeObject(new
+            {
+                message = new
+                {
+                    token = deviceToken,
+                    data = jsonDataObj,
+                    android = new
+                    {
+                        priority = "high",
+                        ttl = $"{ttlInSeconds}s",
+                    },
+                },
+            });
+
+            SendData(msg);
+        }
+
+        private void SendData(string json)
+        {
+            var msgBytes = Encoding.UTF8.GetBytes(json);
 
             string token;
             lock (m_syncCredential)

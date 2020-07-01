@@ -767,7 +767,11 @@ namespace EarthquakeTalker
                     {
                         try
                         {
+#if DEBUG
+                            m_fcm.SendData(m_fcmMessage, "test", 60);
+#else
                             m_fcm.SendData(m_fcmMessage, "eqk", 60);
+#endif
                             Console.Write('F');
                             break;
                         }
