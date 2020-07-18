@@ -112,6 +112,7 @@
     <Compile Include="KmaMicro.cs" />
     <Compile Include="KmaNews.cs" />
     <Compile Include="KmaPews.cs" />
+    <Compile Include="KmaTsunami.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MessageServer.cs" />
     <Compile Include="MultipleTalker.cs" />

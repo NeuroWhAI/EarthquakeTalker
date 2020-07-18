@@ -169,6 +169,7 @@ namespace EarthquakeTalker
                 triggerTime: TimeSpan.FromSeconds(30), maxStatusCount: 20, maxTextLength: 32));
             workerList.Add(new KmaNews());
             workerList.Add(new KmaPews(fcmServer));
+            workerList.Add(new KmaTsunami());
 
             int sensorIndex = 0;
             foreach (var sensor in seismographList)
