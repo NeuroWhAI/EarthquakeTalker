@@ -207,7 +207,7 @@ namespace EarthquakeTalker
                     }
                     string header = headerBuff.ToString();
 
-                    var bodyBuff = new StringBuilder(ByteToBinStr(bytes[0]));
+                    var bodyBuff = new StringBuilder();
                     for (int i = HeadLength; i < bytes.Length; ++i)
                     {
                         bodyBuff.Append(ByteToBinStr(bytes[i]));
@@ -548,15 +548,31 @@ namespace EarthquakeTalker
 
             var mmiData = new List<int>();
 
-            string mmiBody = body.Split(new[] { "11111111" }, StringSplitOptions.None).First();
-            for (int i = 8; i < mmiBody.Length; i += 4)
+            for (int i = 0; i < body.Length; i += 4)
             {
                 if (mmiData.Count >= m_stations.Count)
                 {
                     break;
                 }
 
-                int mmi = Convert.ToInt32(mmiBody.Substring(i, 4), 2);
+                int mmi = Convert.ToInt32(body.Substring(i, 4), 2);
+                if (mmi < 0)
+                {
+                    // 음수일 수 없음.
+                    mmi = 0;
+                }
+                else if (mmi > 11)
+                {
+                    // 세분화 된 진도 I.
+                    mmi = 1;
+                }
+                else if (mmi > 10)
+                {
+                    // 이도저도 아님.
+                    // PEWS 사이트에서는 진도 X에 해당하는 색을 의미하긴 함.
+                    mmi = 10;
+                }
+
                 mmiData.Add(mmi);
             }
 
