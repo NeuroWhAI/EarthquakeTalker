@@ -804,8 +804,21 @@ namespace EarthquakeTalker
             foreach (byte b in bytes)
             {
                 string bStr = ByteToBinStr(b);
-                gridData.Add(Convert.ToInt32(bStr.Substring(0, 4), 2));
-                gridData.Add(Convert.ToInt32(bStr.Substring(4, 4), 2));
+                for (int offset = 0; offset < 8; offset += 4)
+                {
+                    int mmi = Convert.ToInt32(bStr.Substring(offset, 4), 2);
+                    if (mmi < 0)
+                    {
+                        mmi = 0;
+                    }
+                    else if (mmi > 11)
+                    {
+                        // 세분화 된 진도 I.
+                        mmi = 1;
+                    }
+
+                    gridData.Add(mmi);
+                }
             }
 
             using (var canvas = new Bitmap(m_gridMap.Width, m_gridMap.Height))
