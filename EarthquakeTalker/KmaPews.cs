@@ -546,9 +546,10 @@ namespace EarthquakeTalker
                 return null;
             }
 
+            int mmiDataCnt = (body.Length - (MaxEqkStrLen * 8 + MaxEqkInfoLen)) / 4;
             var mmiData = new List<int>();
 
-            for (int i = 0; i < body.Length; i += 4)
+            for (int i = 0; i < mmiDataCnt * 4; i += 4)
             {
                 if (mmiData.Count >= m_stations.Count)
                 {
