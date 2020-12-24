@@ -299,7 +299,11 @@ namespace EarthquakeTalker
                     // 지진 정보 발표가 없는 상태이고 관측소 데이터가 있으면 진도 분석.
                     if (phase <= 1 && m_stations.Count > 0)
                     {
-                        msg = HandleMmi(body);
+                        // 위에서 관측소 데이터 갱신시 성공했을때만.
+                        if (!m_stationUpdate)
+                        {
+                            msg = HandleMmi(body);
+                        }
                     }
                     else
                     {
@@ -546,10 +550,9 @@ namespace EarthquakeTalker
                 return null;
             }
 
-            int mmiDataCnt = (body.Length - (MaxEqkStrLen * 8 + MaxEqkInfoLen)) / 4;
             var mmiData = new List<int>();
 
-            for (int i = 0; i < mmiDataCnt * 4; i += 4)
+            for (int i = 0; i < body.Length; i += 4)
             {
                 if (mmiData.Count >= m_stations.Count)
                 {
