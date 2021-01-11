@@ -93,6 +93,7 @@ namespace EarthquakeTalker
                 JToken notiList = json["response"]?["body"]?["items"]?["item"];
                 if (notiList == null || notiList.Type != JTokenType.Array)
                 {
+                    Console.Write('T');
                     return null;
                 }
 
