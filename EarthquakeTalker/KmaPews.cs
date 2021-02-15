@@ -544,7 +544,7 @@ namespace EarthquakeTalker
 
         private Message HandleMmi(string body)
         {
-            const double ClusterDistance = 80.0;
+            const double ClusterDistance = 60.0;
             const int MinClusterSize = 4;
 
             if (m_stations.Count <= 0)
@@ -682,7 +682,9 @@ namespace EarthquakeTalker
                 return msg;
             }
 
-            if (largeClusterMmi.Count >= MinClusterSize + 1)
+            // 진도 I 개수는 가중치를 낮게 두고 클러스터 크기 확인.
+            int mmi1Cnt = largeClusterMmi.Count((m) => m == 1);
+            if ((largeClusterMmi.Count - mmi1Cnt + mmi1Cnt * 0.5) >= MinClusterSize + 1)
             {
                 int[] mmiCnt = new int[14];
                 for (int mmi = 0; mmi < mmiCnt.Length; ++mmi)

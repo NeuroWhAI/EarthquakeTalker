@@ -29,7 +29,7 @@ namespace EarthquakeTalker
         public int RawMmi { get; private set; } = 0;
 
         /// <summary>
-        /// 최대 진도
+        /// 별도로 초기화하기 전까지의 최대 진도
         /// </summary>
         public int MaxMmi { get; private set; } = 0;
 
