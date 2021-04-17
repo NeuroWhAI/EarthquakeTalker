@@ -19,6 +19,11 @@ namespace EarthquakeTalker
         public double Latitude { get; set; } = 0;
 
         /// <summary>
+        /// 관측소 위치 지역
+        /// </summary>
+        public string Location { get; set; } = string.Empty;
+
+        /// <summary>
         /// 일정 시간 동안의 최대 진도
         /// </summary>
         public int Mmi { get; private set; } = 0;

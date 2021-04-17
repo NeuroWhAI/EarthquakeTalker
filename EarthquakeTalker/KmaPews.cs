@@ -48,6 +48,7 @@ namespace EarthquakeTalker
 
         private bool m_stationUpdate = true;
         private List<PewsStation> m_stations = new List<PewsStation>();
+        private PewsStnDatabase m_stationDb = null;
         private static readonly int StnMmiTrigger = 2;
         private int m_maxStnMmi = StnMmiTrigger - 1;
         private readonly TimeSpan StnMmiLife = TimeSpan.FromSeconds(8.0);
@@ -71,6 +72,9 @@ namespace EarthquakeTalker
             m_maxStnMmi = StnMmiTrigger - 1;
 
             SyncTime();
+
+            m_stationDb = new PewsStnDatabase();
+            m_stationDb.LoadDatabase("stations.csv");
 
 #if DEBUG
             //StartSimulation("2017000407", "20171115142931"); // 포항 5.4
@@ -103,6 +107,8 @@ namespace EarthquakeTalker
             m_stationUpdate = true;
             m_stations.Clear();
             m_maxStnMmi = StnMmiTrigger - 1;
+
+            m_stationDb = null;
         }
 
         protected override Message OnWork(Action<Message> sender)
@@ -531,10 +537,17 @@ namespace EarthquakeTalker
             m_stations.Clear();
             for (int i = 0; i < stnLat.Count; ++i)
             {
+                string location = m_stationDb.GetStationInfoAround(stnLat[i], stnLon[i]).Location;
+                if (string.IsNullOrEmpty(location))
+                {
+                    m_logger.PushLog($"Can not found a station on {stnLat[i]}, {stnLon[i]}.");
+                }
+
                 m_stations.Add(new PewsStation
                 {
                     Latitude = stnLat[i],
                     Longitude = stnLon[i],
+                    Location = location,
                 });
             }
 
@@ -581,6 +594,7 @@ namespace EarthquakeTalker
 
             int maxClusterMmi = 0;
             var largeClusterMmi = new List<int> { 0 };
+            string maxClusterLoc = string.Empty;
 
             bool[] visited = new bool[m_stations.Count];
             for (int i = 0; i < m_stations.Count; ++i)
@@ -591,6 +605,7 @@ namespace EarthquakeTalker
                 }
 
                 var clusterMmi = new List<int> { 0 };
+                int centerStn = -1;
 
                 var leftStns = new Queue<int>();
                 leftStns.Enqueue(i);
@@ -616,6 +631,11 @@ namespace EarthquakeTalker
 
                     clusterMmi.Add(mmi);
 
+                    if (centerStn < 0 || stn.Mmi > m_stations[centerStn].Mmi)
+                    {
+                        centerStn = current;
+                    }
+
                     double centerX = (stn.Longitude - 124.5) * 113;
                     double centerY = (38.9 - stn.Latitude) * 138.4;
 
@@ -639,11 +659,11 @@ namespace EarthquakeTalker
                     }
                 }
 
-                int currentMaxMmi = clusterMmi.Max();
-                if (currentMaxMmi > maxClusterMmi)
+                if (centerStn >= 0 && m_stations[centerStn].Mmi > maxClusterMmi)
                 {
-                    maxClusterMmi = currentMaxMmi;
+                    maxClusterMmi = m_stations[centerStn].Mmi;
                     largeClusterMmi = clusterMmi;
+                    maxClusterLoc = m_stations[centerStn].Location;
                 }
             }
 
@@ -701,6 +721,11 @@ namespace EarthquakeTalker
                 else
                 {
                     buffer.AppendLine("⚠️ 관측소 진도 정보가 수신되었습니다.");
+                }
+
+                if (!string.IsNullOrEmpty(maxClusterLoc))
+                {
+                    buffer.AppendLine($"위치 : {maxClusterLoc} 인근");
                 }
 
                 buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(maxClusterMmi)}({maxClusterMmi})");
