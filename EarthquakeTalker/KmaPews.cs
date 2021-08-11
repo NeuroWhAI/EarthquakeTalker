@@ -716,19 +716,19 @@ namespace EarthquakeTalker
 
                 if (m_maxStnMmi >= StnMmiTrigger)
                 {
-                    buffer.AppendLine("⚠️ 관측소 진도 정보가 갱신되었습니다.");
+                    buffer.AppendLine("⚠️ 감시 화면에 대한 요약정보가 갱신되었습니다.");
                 }
                 else
                 {
-                    buffer.AppendLine("⚠️ 관측소 진도 정보가 수신되었습니다.");
+                    buffer.AppendLine("⚠️ 실시간 감시 화면에 대한 요약정보입니다.");
                 }
 
                 if (!string.IsNullOrEmpty(maxClusterLoc))
                 {
-                    buffer.AppendLine($"위치 : {maxClusterLoc} 인근");
+                    buffer.AppendLine($"관측소 위치 : {maxClusterLoc} 인근");
                 }
 
-                buffer.AppendLine($"최대 진도 : {Earthquake.MMIToString(maxClusterMmi)}({maxClusterMmi})");
+                buffer.AppendLine($"최대진도 : {Earthquake.MMIToString(maxClusterMmi)}({maxClusterMmi})");
 
                 for (int mmi = mmiCnt.Length - 1; mmi >= 1; --mmi)
                 {
@@ -741,10 +741,10 @@ namespace EarthquakeTalker
 
                 if (maxClusterMmi >= 5)
                 {
-                    buffer.AppendLine("대피 요령 : https://www.weather.go.kr/pews/man/m.html");
+                    buffer.AppendLine("흔들림이 느껴질 때 : https://www.weather.go.kr/pews/man/m.html");
                 }
 
-                buffer.AppendLine("오류일 수 있으며 자세한 정보는 추후 발표될 예정입니다.");
+                buffer.AppendLine("실제 지진은 신속/상세정보로 발표됩니다.");
                 buffer.AppendLine();
                 buffer.Append(Earthquake.GetKnowHowFromMMI(maxClusterMmi));
 
