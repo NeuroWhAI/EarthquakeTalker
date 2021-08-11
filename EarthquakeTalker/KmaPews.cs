@@ -753,7 +753,7 @@ namespace EarthquakeTalker
 
                 return new Message()
                 {
-                    Level = Message.Priority.Critical,
+                    Level = ((maxClusterMmi >= 5) ? Message.Priority.Critical : Message.Priority.High),
                     Sender = "기상청 실시간 지진감시",
                     Text = buffer.ToString().TrimEnd(),
                 };
