@@ -226,6 +226,12 @@ namespace EarthquakeTalker
 
                     mapUrl = eqkInfoHtml.Substring(index + 1, endIndex - index - 1);
 
+                    endIndex = mapUrl.IndexOf(';');
+                    if (endIndex >= 0)
+                    {
+                        mapUrl = mapUrl.Substring(0, endIndex);
+                    }
+
 
                     // 속보 파싱 중지.
                     m_latestEqk = null;
