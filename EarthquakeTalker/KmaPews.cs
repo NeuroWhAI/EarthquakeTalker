@@ -681,12 +681,13 @@ namespace EarthquakeTalker
                     {
                         string filePath = SaveStnMaxMmiToFile();
 
-                        msg = new Message()
+                        // NOTE: 법적 문제로 제공 중단.
+                        /*msg = new Message()
                         {
                             Level = Message.Priority.Normal,
                             Sender = "기상청 실시간 지진감시",
                             Text = filePath,
-                        };
+                        };*/
                     }
 
                     // 관측소 진도 초기화.
@@ -751,12 +752,13 @@ namespace EarthquakeTalker
                 // 임시 트리거 레벨을 높힘.
                 m_maxStnMmi = maxClusterMmi;
 
-                return new Message()
+                // NOTE: 법적 문제로 제공 중단.
+                /*return new Message()
                 {
                     Level = ((maxClusterMmi >= 5) ? Message.Priority.Critical : Message.Priority.High),
                     Sender = "기상청 실시간 지진감시",
                     Text = buffer.ToString().TrimEnd(),
-                };
+                };*/
             }
 
             return null;
