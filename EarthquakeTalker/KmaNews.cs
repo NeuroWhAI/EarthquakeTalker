@@ -98,6 +98,15 @@ namespace EarthquakeTalker
                     string eqkInfoHtml = eqkInfo.Result;
 
 
+                    // 위에서 찾은 지진 속보에 해당하는 상세 페이지가 아니라면
+                    // 파싱 중지.
+                    if (!eqkInfoHtml.Contains(m_latestEqk.Replace("eqk_web_", "i_").Replace(".xml", ".png")))
+                    {
+                        m_latestEqk = null;
+                        return null;
+                    }
+
+
                     string time;
                     string scale;
                     string intensity;
