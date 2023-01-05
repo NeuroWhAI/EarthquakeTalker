@@ -12,9 +12,9 @@ namespace EarthquakeTalker
     {
         public static string ConvertHtmlToText(string html)
         {
-            html = Regex.Replace(html, @" {2,}", " ");
-            html = Regex.Replace(html, @"> +", ">");
-            html = Regex.Replace(html, @" +<", "<");
+            html = Regex.Replace(html, @"\s{2,}", " ");
+            html = Regex.Replace(html, @">\s+", ">");
+            html = Regex.Replace(html, @"\s+<", "<");
 
             StringBuilder msgBdr = new StringBuilder(html);
             msgBdr.Replace("<br>", "\n");
