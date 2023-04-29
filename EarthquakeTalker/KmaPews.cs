@@ -37,7 +37,6 @@ namespace EarthquakeTalker
         private string m_prevBinTime = string.Empty;
         private double m_tide = 1000;
         private DateTime m_nextSyncTime = DateTime.MinValue;
-        private int m_prevPhase = 0;
         private string m_prevAlarmId = string.Empty;
 
         private string m_gridEqkId = null;
@@ -88,7 +87,6 @@ namespace EarthquakeTalker
             m_prevBinTime = string.Empty;
             m_tide = 1000;
             m_nextSyncTime = DateTime.MinValue;
-            m_prevPhase = 0;
             m_prevAlarmId = string.Empty;
 
             m_gridEqkId = null;
@@ -270,8 +268,6 @@ namespace EarthquakeTalker
                         }
                     }
 
-                    m_prevPhase = phase;
-
 
                     if (m_stationUpdate)
                     {
@@ -447,8 +443,8 @@ namespace EarthquakeTalker
             string alarmId = eqkId + phase;
             Message msg = null;
 
-            // 페이즈가 넘어갔으며 이전에 전송한 것과 동일한 알람이 아니라면.
-            if (phase > m_prevPhase && alarmId != m_prevAlarmId)
+            // 페이즈가 바뀌었거나 이전에 전송한 것과 동일한 알람이 아니라면.
+            if (alarmId != m_prevAlarmId)
             {
                 m_gridEqkId = eqkId;
 
