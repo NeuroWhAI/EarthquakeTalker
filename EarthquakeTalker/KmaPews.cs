@@ -79,6 +79,7 @@ namespace EarthquakeTalker
             //StartSimulation("2017000407", "20171115142931"); // 포항 5.4
             //StartSimulation("2020005363", "20200511194506"); // 북한 3.8
             //StartSimulation("2021000517", "20210203121756"); // 인천 2.2
+            //StartSimulation("2021007178", "20211214171904"); // 제주 4.9
 #endif
         }
 
@@ -448,6 +449,15 @@ namespace EarthquakeTalker
             {
                 m_gridEqkId = eqkId;
 
+                if (!string.IsNullOrWhiteSpace(eqkId))
+                {
+                    string eqkLoc = RequestLocData(eqkId, phase);
+                    if (!string.IsNullOrEmpty(eqkLoc))
+                    {
+                        eqkStr = eqkLoc;
+                    }
+                }
+
                 if (phase == 2)
                 {
                     // 발생 시각, 규모, 최대 진도, 문구 정도는 부정확할 수 있어도 첫 정보에 포함되는 듯.
@@ -787,7 +797,7 @@ namespace EarthquakeTalker
                 return;
             }
 
-            if (m_fcmMessage != null && phase == 2)
+            if (m_fcm != null && m_fcmMessage != null && phase == 2)
             {
                 byte[] compressedBytes = Ionic.Zlib.ZlibStream.CompressBuffer(bytes);
 
@@ -896,6 +906,71 @@ namespace EarthquakeTalker
                     m_gridFilePath = filePath;
                 }
             }
+        }
+
+        private string RequestLocData(string eqkId, int phase)
+        {
+            byte[] bytes = null;
+
+            try
+            {
+                string fileName = string.Empty;
+                if (phase == 2)
+                {
+                    fileName = $"{eqkId}.le";
+                }
+                else if (phase == 3)
+                {
+                    fileName = $"{eqkId}.li";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    using (var client = new WebClient())
+                    {
+                        client.Headers.Add("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
+                        string url = $"{DataPath}/{fileName}";
+                        bytes = client.DownloadData(url);
+                    }
+                }
+            }
+            catch
+            {
+                bytes = null;
+            }
+
+            if (bytes == null || bytes.Length <= 0)
+            {
+                return string.Empty;
+            }
+
+            string json = Encoding.UTF8.GetString(bytes);
+
+            string propName = "\"info_ko\"";
+            int idx = json.IndexOf(propName);
+            if (idx < 0)
+            {
+                return string.Empty;
+            }
+
+            idx = json.IndexOf('"', idx + propName.Length);
+            if (idx < 0)
+            {
+                return string.Empty;
+            }
+
+            int endIdx = json.IndexOf('"', idx + 1);
+            if (endIdx < 0)
+            {
+                return string.Empty;
+            }
+
+            return json.Substring(idx + 1, endIdx - idx - 1).Trim();
         }
 
         private string SaveGridToFile(Bitmap canvas, string eqkId)
