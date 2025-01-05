@@ -45,7 +45,7 @@ namespace EarthquakeTalker
 
 
                 var byteArray = kmaNoti.Result.ToArray();
-                var kmaNotiHtml = Encoding.GetEncoding(949).GetString(byteArray, 0, byteArray.Length);
+                var kmaNotiHtml = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
 
                 string noti = Util.ConvertHtmlToText(kmaNotiHtml).Trim();
 
